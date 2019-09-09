@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{69F1198D-C562-413D-AB72-615EE7E6C714}</ProjectGuid>
+    <RootNamespace>OpenMultiPR</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>Descriptors\GIST\include;$(FFTW_DIR)\include;$(KL1p_DIR)\libs\Armadillo\include;$(KL1p_DIR)\include;$(OpenCV_DIR)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(FFTW_DIR)\lib;$(KL1p_DIR)\bin\win;$(OpenCV_DIR)\x64\vc15\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>Descriptors\GIST\include;$(FFTW_DIR)\include;$(KL1p_DIR)\libs\Armadillo\include;$(KL1p_DIR)\include;$(OpenCV_DIR)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(FFTW_DIR)\lib;$(KL1p_DIR)\bin\win;$(OpenCV_DIR)\x64\vc15\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies />
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="Descriptors\BoW\BowVector.h" />
+    <ClInclude Include="Descriptors\BoW\Database.h" />
+    <ClInclude Include="Descriptors\BoW\DBoW3.h" />
+    <ClInclude Include="Descriptors\BoW\DescManip.h" />
+    <ClInclude Include="Descriptors\BoW\exports.h" />
+    <ClInclude Include="Descriptors\BoW\FeatureVector.h" />
+    <ClInclude Include="Descriptors\BoW\QueryResults.h" />
+    <ClInclude Include="Descriptors\BoW\quicklz.h" />
+    <ClInclude Include="Descriptors\BoW\ScoringObject.h" />
+    <ClInclude Include="Descriptors\BoW\timers.h" />
+    <ClInclude Include="Descriptors\BoW\Vocabulary.h" />
+    <ClInclude Include="Descriptors\CS\CompressedSensingExample.h" />
+    <ClInclude Include="Descriptors\CS\CSOperation.h" />
+    <ClInclude Include="Descriptors\DescriptorExtraction.h" />
+    <ClInclude Include="Descriptors\DescriptorGroup.h" />
+    <ClInclude Include="Descriptors\DesriptorFromFile.h" />
+    <ClInclude Include="Descriptors\GIST\include\gist.h" />
+    <ClInclude Include="Descriptors\LDB\Ldb.h" />
+    <ClInclude Include="FileInterface\FileInterface.h" />
+    <ClInclude Include="FileInterface\GlobalConfig.h" />
+    <ClInclude Include="FileInterface\GroundTruth.h" />
+    <ClInclude Include="FileInterface\PicGnssFile.h" />
+    <ClInclude Include="genetic.hpp" />
+    <ClInclude Include="Header.h" />
+    <ClInclude Include="ParameterTuning.h" />
+    <ClInclude Include="SequenceSearch.h" />
+    <ClInclude Include="Tools\dirent.h" />
+    <ClInclude Include="Tools\GNSSDistance.h" />
+    <ClInclude Include="Tools\list_dir.h" />
+    <ClInclude Include="Tools\Timer.h" />
+    <ClInclude Include="VisualLocalization.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Descriptors\BoW\BowVector.cpp" />
+    <ClCompile Include="Descriptors\BoW\Database.cpp" />
+    <ClCompile Include="Descriptors\BoW\DescManip.cpp" />
+    <ClCompile Include="Descriptors\BoW\FeatureVector.cpp" />
+    <ClCompile Include="Descriptors\BoW\QueryResults.cpp" />
+    <ClCompile Include="Descriptors\BoW\quicklz.c" />
+    <ClCompile Include="Descriptors\BoW\ScoringObject.cpp" />
+    <ClCompile Include="Descriptors\BoW\Vocabulary.cpp" />
+    <ClCompile Include="Descriptors\CS\CompressedSensingExample.cpp" />
+    <ClCompile Include="Descriptors\CS\CSOperation.cpp" />
+    <ClCompile Include="Descriptors\DescriptorExtraction.cpp" />
+    <ClCompile Include="Descriptors\DescriptorFromFile.cpp" />
+    <ClCompile Include="Descriptors\DescriptorGroup.cpp" />
+    <ClCompile Include="Descriptors\GIST\src\gist.cpp" />
+    <ClCompile Include="Descriptors\GIST\src\libgist.cpp" />
+    <ClCompile Include="Descriptors\GIST\src\standalone_image.cpp" />
+    <ClCompile Include="Descriptors\LDB\Ldb.cpp" />
+    <ClCompile Include="FileInterface\GlobalConfig.cpp" />
+    <ClCompile Include="FileInterface\GroundTruth.cpp" />
+    <ClCompile Include="FileInterface\PicGnssFile.cpp" />
+    <ClCompile Include="KeyPositionMain.cpp" />
+    <ClCompile Include="ParameterTuning.cpp" />
+    <ClCompile Include="SequenceSearch.cpp" />
+    <ClCompile Include="Tools\GNSSDistance.cpp" />
+    <ClCompile Include="Tools\list_dir.cpp" />
+    <ClCompile Include="Tools\timer.cpp" />
+    <ClCompile Include="VisualLocalization.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
