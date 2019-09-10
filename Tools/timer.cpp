@@ -21,7 +21,7 @@
 ** SOFTWARE.
 **/
 
-#include "timer.h"
+#include "Timer.h"
 #include <iostream>
 
 Timer::Timer() {}

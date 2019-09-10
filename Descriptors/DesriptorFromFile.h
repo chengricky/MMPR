@@ -1,7 +1,9 @@
-#pragma once
+#ifndef DESCRIPTORFROMFILE
+#define DESCRIPTORFROMFILE
+
 #include <vector>
-#include "..\FileInterface\PicGnssFile.h"
-#include "..\FileInterface\GlobalConfig.h"
+#include "../Descriptors/PicGnssFile.h"
+#include "../Descriptors/GlobalConfig.h"
 
 class DescriptorFromFile
 {
@@ -17,3 +19,4 @@ public:
 	int getVolume() { return picFiles.getFileVolume(); };
 
 };
+#endif

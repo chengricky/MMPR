@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _GLOBALCONFIG_H
+#define _GLOBALCONFIG_H
+
 #include <string>
 #include "../Header.h"
 
@@ -25,28 +27,18 @@ public:
 	bool getValid() const { return valid; };
 
 	// the configs
-	cv::Size dImgSize;
-	cv::Size qImgSize;
 	std::string pathRec;
 	std::string pathTest;
-	std::string codeBook;
 	bool fileType; // true=feature, false=image
 	int interval;
 
 	//彩色图保持为彩色图(1)或转换为灰度图(0)
-	bool isColor; 
-	bool useColor;
-	bool useIR;
-	bool useDepth;
 	bool withGPS;
 	
-	// Descriptor Type
-	bool useGIST;
-	bool useCS;
-	bool useBoW;
-	bool useLDB;
+
 
 	// config valid
 	bool valid;
 };
 
+#endif

@@ -1,7 +1,6 @@
 #include "DesriptorFromFile.h"
-#include "..\tools\Timer.h"
-#include "..\tools\list_dir.h"
-#include "direct.h"
+#include "../Tools/Timer.h"
+//#include "../Tools/list_dir.h"
 #include "../Tools/GNSSDistance.h"
 
 DescriptorFromFile::DescriptorFromFile(GlobalConfig& config, bool isRefImage)
@@ -12,7 +11,7 @@ DescriptorFromFile::DescriptorFromFile(GlobalConfig& config, bool isRefImage)
 		picPath = config.pathTest;
 
 	// 对图像文件列表和GNSS、是否关键点数据进行赋值
-	picFiles.init(picPath, PicGNSSFile::RGB, config.withGPS, "", config.interval);
+	picFiles.init(picPath, config.withGPS, config.interval);
 
 	while (picFiles.doMainFeatureFile())
 	{

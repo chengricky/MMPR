@@ -1,5 +1,7 @@
-#pragma once
-#include "..\Header.h"
+#ifndef _GROUNDTRUTH_H
+#define _GROUNDTRUTH_H
+
+#include "../Header.h"
 
 class GroundTruth
 {
@@ -16,3 +18,5 @@ public:
 	std::vector<std::vector<int>> gt;
 	void generateGroundTruth(int Tolerence);
 };
+
+#endif

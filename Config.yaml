@@ -1,28 +1,16 @@
 %YAML:1.0
+
 ---
-#PathRec: "E:\\PreciseLocalization\\Dataset\\VLdataset_MultiModal\\T3-Lib\\reference"
-#PathTest: "E:\\PreciseLocalization\\Dataset\\VLdataset_MultiModal\\T3-Lib\\query"
-#PathRec: "E:\\PreciseLocalization\\Dataset\\VLdataset_MultiModal\\T3-Gate\\reference"
-#PathTest: "E:\\PreciseLocalization\\Dataset\\VLdataset_MultiModal\\T3-Gate\\query"
+
 PathRec: "H:\\YuquanPAL4Localization\\ProcessedDataset\\features_4parts\\Afternoon1"
 PathTest: "H:\\YuquanPAL4Localization\\ProcessedDataset\\features_4parts\\Dusk1"
 #PathRec: "D:\\2015 Highway Dataset\\Day-netVLAD-patch"
 #PathTest: "D:\\2015 Highway Dataset\\Night-netVLAD-patch"
-BoW_CodeBook: "orbvoc.dbow3"
-# read "Image"=0 or "Feature"=1 from files
+
+# read "Feature" from files
 FileType: 1
 Interval: 1
-# ImgType - hybrid-RGBDIR(3), RGBIR(4), BoW-RGB,GIST-RGB,LDB-RGBDIR(5-paperConfig), RGBDIR-SS(6)
-ColorImg: 1 # color is essential for place recognition
-DepthImg: 0
-InfraredImg: 0
-databaseImgSize: [ 320, 240 ]
-queryImgSize: [ 320, 240 ]
-# Descriptor: LDB is effective for all images, other descriptor is used for COLOR image only.
-GIST: 1
-CS: 0
-ORB-BoW: 1
-LDB: 1
+
 # whether use color image
 Color: 1
 # other sensor

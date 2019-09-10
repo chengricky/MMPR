@@ -20,19 +20,11 @@ bool GlobalConfig::readConfig()
 	}
 	fs["PathRec"] >> pathRec;
 	fs["PathTest"] >> pathTest;
-	fs["BoW_CodeBook"] >> codeBook;
+
 	fs["FileType"] >> fileType;
-	fs["ColorImg"] >> useColor;
-	fs["DepthImg"] >> useDepth;
-	fs["InfraredImg"] >> useIR;
-	fs["queryImgSize"] >> qImgSize;
-	fs["databaseImgSize"] >> dImgSize;
-	fs["GIST"] >> useGIST;
+
 	fs["Interval"] >> interval;
-	fs["CS"] >> useCS;
-	fs["ORB-BoW"] >> useBoW;
-	fs["LDB"] >> useLDB;
-	fs["Color"] >> isColor;
+
 	fs["GPS"] >> withGPS;
 
 	return true;
