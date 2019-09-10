@@ -1,1 +1,0 @@
-/usr/bin/g++-7   -g -g  -rdynamic CMakeFiles/SeqPR.dir/Main.cpp.o CMakeFiles/SeqPR.dir/ParameterTuning.cpp.o CMakeFiles/SeqPR.dir/SequenceSearch.cpp.o CMakeFiles/SeqPR.dir/VisualLocalization.cpp.o  -o SeqPR 

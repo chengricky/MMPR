@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdescs.a  CMakeFiles/descs.dir/DescriptorExtraction.cpp.o CMakeFiles/descs.dir/DescriptorFromFile.cpp.o CMakeFiles/descs.dir/DescriptorGroup.cpp.o
-/usr/bin/ranlib libdescs.a

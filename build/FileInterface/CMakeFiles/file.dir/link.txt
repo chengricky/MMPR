@@ -1,2 +1,0 @@
-/usr/bin/ar qc libfile.a  CMakeFiles/file.dir/GlobalConfig.cpp.o CMakeFiles/file.dir/GroundTruth.cpp.o CMakeFiles/file.dir/PicGnssFile.cpp.o
-/usr/bin/ranlib libfile.a

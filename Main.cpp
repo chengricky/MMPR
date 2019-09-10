@@ -1,5 +1,4 @@
 #include "FileInterface\picGnssfile.h"
-#include "descriptors/CS/CSOperation.h"
 #include "VisualLocalization.h"
 #include "FileInterface\GlobalConfig.h"
 #include <iostream>
