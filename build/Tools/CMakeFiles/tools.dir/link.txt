@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtools.a  CMakeFiles/tools.dir/GNSSDistance.cpp.o CMakeFiles/tools.dir/list_dir.cpp.o CMakeFiles/tools.dir/timer.cpp.o
+/usr/bin/ranlib libtools.a

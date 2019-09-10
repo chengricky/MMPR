@@ -1,0 +1,12 @@
+/home/ricky/SeqPRCPlus/build/CMakeFiles/rebuild_cache.dir
+/home/ricky/SeqPRCPlus/build/CMakeFiles/SeqPR.dir
+/home/ricky/SeqPRCPlus/build/CMakeFiles/edit_cache.dir
+/home/ricky/SeqPRCPlus/build/Descriptors/CMakeFiles/rebuild_cache.dir
+/home/ricky/SeqPRCPlus/build/Descriptors/CMakeFiles/descs.dir
+/home/ricky/SeqPRCPlus/build/Descriptors/CMakeFiles/edit_cache.dir
+/home/ricky/SeqPRCPlus/build/FileInterface/CMakeFiles/rebuild_cache.dir
+/home/ricky/SeqPRCPlus/build/FileInterface/CMakeFiles/file.dir
+/home/ricky/SeqPRCPlus/build/FileInterface/CMakeFiles/edit_cache.dir
+/home/ricky/SeqPRCPlus/build/Tools/CMakeFiles/rebuild_cache.dir
+/home/ricky/SeqPRCPlus/build/Tools/CMakeFiles/tools.dir
+/home/ricky/SeqPRCPlus/build/Tools/CMakeFiles/edit_cache.dir

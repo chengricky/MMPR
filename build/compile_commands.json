@@ -1,0 +1,67 @@
+[
+{
+  "directory": "/home/ricky/SeqPRCPlus/build",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.   -g -g   -o CMakeFiles/SeqPR.dir/Main.cpp.o -c /home/ricky/SeqPRCPlus/Main.cpp",
+  "file": "/home/ricky/SeqPRCPlus/Main.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.   -g -g   -o CMakeFiles/SeqPR.dir/ParameterTuning.cpp.o -c /home/ricky/SeqPRCPlus/ParameterTuning.cpp",
+  "file": "/home/ricky/SeqPRCPlus/ParameterTuning.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.   -g -g   -o CMakeFiles/SeqPR.dir/SequenceSearch.cpp.o -c /home/ricky/SeqPRCPlus/SequenceSearch.cpp",
+  "file": "/home/ricky/SeqPRCPlus/SequenceSearch.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.   -g -g   -o CMakeFiles/SeqPR.dir/VisualLocalization.cpp.o -c /home/ricky/SeqPRCPlus/VisualLocalization.cpp",
+  "file": "/home/ricky/SeqPRCPlus/VisualLocalization.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/Descriptors",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/descs.dir/DescriptorExtraction.cpp.o -c /home/ricky/SeqPRCPlus/Descriptors/DescriptorExtraction.cpp",
+  "file": "/home/ricky/SeqPRCPlus/Descriptors/DescriptorExtraction.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/Descriptors",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/descs.dir/DescriptorFromFile.cpp.o -c /home/ricky/SeqPRCPlus/Descriptors/DescriptorFromFile.cpp",
+  "file": "/home/ricky/SeqPRCPlus/Descriptors/DescriptorFromFile.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/Descriptors",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/descs.dir/DescriptorGroup.cpp.o -c /home/ricky/SeqPRCPlus/Descriptors/DescriptorGroup.cpp",
+  "file": "/home/ricky/SeqPRCPlus/Descriptors/DescriptorGroup.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/FileInterface",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/file.dir/GlobalConfig.cpp.o -c /home/ricky/SeqPRCPlus/FileInterface/GlobalConfig.cpp",
+  "file": "/home/ricky/SeqPRCPlus/FileInterface/GlobalConfig.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/FileInterface",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/file.dir/GroundTruth.cpp.o -c /home/ricky/SeqPRCPlus/FileInterface/GroundTruth.cpp",
+  "file": "/home/ricky/SeqPRCPlus/FileInterface/GroundTruth.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/FileInterface",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/file.dir/PicGnssFile.cpp.o -c /home/ricky/SeqPRCPlus/FileInterface/PicGnssFile.cpp",
+  "file": "/home/ricky/SeqPRCPlus/FileInterface/PicGnssFile.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/Tools",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/tools.dir/GNSSDistance.cpp.o -c /home/ricky/SeqPRCPlus/Tools/GNSSDistance.cpp",
+  "file": "/home/ricky/SeqPRCPlus/Tools/GNSSDistance.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/Tools",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/tools.dir/list_dir.cpp.o -c /home/ricky/SeqPRCPlus/Tools/list_dir.cpp",
+  "file": "/home/ricky/SeqPRCPlus/Tools/list_dir.cpp"
+},
+{
+  "directory": "/home/ricky/SeqPRCPlus/build/Tools",
+  "command": "/usr/bin/g++-7   -I/home/ricky/SeqPRCPlus/.  -g   -o CMakeFiles/tools.dir/timer.cpp.o -c /home/ricky/SeqPRCPlus/Tools/timer.cpp",
+  "file": "/home/ricky/SeqPRCPlus/Tools/timer.cpp"
+}
+]
