@@ -1,4 +1,7 @@
-#pragma once
+
+#ifndef SEQUENCESEARCH_H
+#define SEQUENCESEARCH_H
+
 #include "Header.h"
 
 class SequenceSearch
@@ -24,3 +27,5 @@ public:
 	void coneSearch();
 	cv::Mat scoreMat;	
 };
+
+#endif

@@ -32,6 +32,11 @@ VisualLocalization::VisualLocalization(GlobalConfig& config)
 	cv::destroyAllWindows();
 	ground.init(config.pathTest + "\\of.txt", config.pathRec + "\\of.txt");
 	ground.generateGroundTruth(5);
+
+	// construct the FLANN database
+	cv::flann::KDTreeIndexParams kdIndex(5); //同时建立多个随机kd树，确定tree的数量
+	searchDB = new cv::flann::Index(featurebase->netVLADs, kdIndex); //默认为L2 distance
+
 };
 
 VisualLocalization::~VisualLocalization()
@@ -99,6 +104,75 @@ bool VisualLocalization::getGlobalSearch()//GPS global best
 	return true;
 }
 
+vector<vector<int>> VisualLocalization::getTopKRetrieval(const int& k)
+{
+	auto query = featurequery->netVLADs;
+	auto ref = featurebase->netVLADs;
+	if(ref.empty()||query.empty())
+		return vector<vector<int>>();
+	else
+	{
+		cv::Mat idx;
+		vector<vector<int>> vecs;
+		for(int i = 0; i < query.rows; i++)
+		{
+			searchDB->knnSearch(query.row(i), idx, cv::Mat(), k, cv::flann::SearchParams());
+			auto vec = (vector<int>)(idx.reshape(1,k));
+			vecs.push_back(vec);
+		}		
+		return vecs;
+	}
+}
+
+void getBestMatch(const vector<vector<int>>& topk)
+{
+	for(int i=0; i<topk.size(); i++)
+	{
+		for (size_t j = 0; j < topk[i].size(); j++)
+		{
+			Frame frame1()
+		}
+		
+		
+	}
+	Frame frame
+}
+
+int VisualLocalization::MatchFrameToFrameFlann(const Frame &frame1, const Frame &frame2)
+{
+    if(frame1.mDspts.empty() || frame2.mDspts.empty())
+    {
+        cout<<"Frame descriptor is empty!\n";
+        return 0;
+    }
+    cv::FlannBasedMatcher flannMatcher(new cv::flann::LshIndexParams(6, 9, 1));
+    std::vector<std::vector<cv::DMatch> > kMatches;
+
+    flannMatcher.knnMatch(frame1.mDspts, frame2.mDspts, kMatches, 2);
+
+    int good = 0;
+	vector<cv::KeyPoint> qPts, dbPts;
+	for (int i = 0; i < kMatches.size(); i++)
+    {
+        if (kMatches[i].size() >= 2 && kMatches[i][0].distance*1.0 / kMatches[i][1].distance < 0.7)
+        {
+            //good += 1;
+			qPts.push_back(frame1.mKpts[kMatches[i][0].queryIdx]);
+			dbPts.push_back(frame2.mKpts[kMatches[i][0].trainIdx]);
+        }
+    }
+	cv::Mat mask;
+	cv::findHomography(qPts, dbPts, cv::RANSAC, 5, mask);	//TODO:调整阈值？
+	for(int i = 0;i < mask.cols; i++)
+	{
+		auto pRow = mask.ptr<uchar>(i);
+		if(*pRow)
+			good++;
+	}
+    return good;
+}
+
+
 
 void VisualLocalization::getBestMatch_FeatureFile()
 {
@@ -107,9 +181,7 @@ void VisualLocalization::getBestMatch_FeatureFile()
 	auto Query = featurequery->netVLADs;
 	auto Ref = featurebase->netVLADs;
 	if (Query.empty() || Ref.empty())
-	{
 		netVLAD_Distance = cv::Mat();
-	}
 	else
 	{
 		netVLAD_Distance = cv::Mat(matRow, matCol, CV_32FC1);
@@ -129,7 +201,7 @@ void VisualLocalization::getBestMatch_FeatureFile()
 	auto GPSQuery = featurequery->GPS;
 	auto GPSRef = featurebase->GPS;
 	if (GPSQuery.empty() || GPSRef.empty())
-	{
+
 		GPSDistance = cv::Mat();
 		GPSMask_uchar = cv::Mat();
 	}

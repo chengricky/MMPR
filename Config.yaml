@@ -2,8 +2,8 @@
 
 ---
 
-PathRec: "H:\\YuquanPAL4Localization\\ProcessedDataset\\features_4parts\\Afternoon1"
-PathTest: "H:\\YuquanPAL4Localization\\ProcessedDataset\\features_4parts\\Dusk1"
+PathRec: "/home/ricky/datasets/Yuquan/Afternoon1"
+PathTest: "/home/ricky/datasets/Yuquan/Dusk1"
 #PathRec: "D:\\2015 Highway Dataset\\Day-netVLAD-patch"
 #PathTest: "D:\\2015 Highway Dataset\\Night-netVLAD-patch"
 

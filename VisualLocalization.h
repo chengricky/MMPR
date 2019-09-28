@@ -3,12 +3,18 @@
 
 #include "Descriptors/DesriptorFromFile.h"
 #include "Descriptors/GroundTruth.h"
+#include "Frame.h"
 
 class VisualLocalization
 {
 public:
 	VisualLocalization(GlobalConfig& config);
 	virtual ~VisualLocalization();
+
+	// 使用flann检索knn结果
+	std::vector<std::vector<int>> getTopKRetrieval(const int& k);
+	// 使用
+	int MatchFrameToFrameFlann(const Frame &frame1, const Frame &frame2);
 
 	void getBestMatch_FeatureFile();
 	bool getDistanceMatrix(float GNSS=30);
@@ -33,6 +39,10 @@ private:
 	cv::Mat GPSMask_uchar;
 
 	cv::Mat netVLAD_Distance;
+	
+	
+	cv::Ptr<cv::flann::Index> searchDB; 
+
 
 	//   ----> database
 	//  |

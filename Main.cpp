@@ -7,9 +7,6 @@
 #include "Header.h"
 #include "Tools/Timer.h"
 
-
-
-
 GlobalConfig GlobalConfig::config("Config.yaml");
 
 int main()
@@ -22,7 +19,10 @@ int main()
 	timer.start();
 
 	//vl.getBestMatch();
-	vl.getBestMatch_FeatureFile();
+	//vl.getBestMatch_FeatureFile();
+
+	auto topk = vl.getTopKRetrieval(10);
+	
 	//vl.showDistanceMatrix();
 
 	timer.stop();
