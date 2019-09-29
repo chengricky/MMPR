@@ -31,6 +31,8 @@ DescriptorFromFile::DescriptorFromFile(GlobalConfig& config, bool isRefImage)
 		timer.start();
 
 		netVLADs.push_back(picFiles.netVLAD);
+		descs.push_back(picFiles.mDecs);
+		kpts.push_back(picFiles.mKPts)
 
 		timer.stop();
 		std::cout << "Time consumed: ";

@@ -15,6 +15,8 @@ public:
 	std::string picPath;
 	cv::Mat GPS;
 	cv::Mat netVLADs;
+	std::vector<cv::Mat> descs;
+	std::vector<cv::vector<cv::KeyPoint>> kpts;
 
 	int getVolume() { return picFiles.getFileVolume(); };
 

@@ -1,5 +1,6 @@
-#include "PicGnssFile.h"
+#include "DscGnssFile.h"
 #include <dirent.h>
+#include "../Tools/cnpy.h"
 
 using namespace std;
 
@@ -10,14 +11,12 @@ PicGNSSFile::PicGNSSFile(std::string filepath, bool ifGNSS)
 
 void PicGNSSFile::init(std::string filepath, bool ifGNSS,  int interval)
 {
+	string suffix_ir = "ir.npy";
+	string suffix_rgb = "rgb.npy";
 
-	vector<string> suffix;
-	suffix.push_back("png.txt");
-	suffix.push_back("jpg.txt");
-	// suffix.push_back("txt");
-
-	DIR* dir = opendir(filepath.c_str());  //打开指定目录
+	DIR* dir = opendir((filepath).c_str());  //打开指定目录
 	dirent* p = nullptr;  //定义遍历指针
+	int counter = 0;
 	while((p = readdir(dir)) != NULL)  //开始逐个遍历
 	{
 		// 过滤"."和".."隐藏文件
@@ -25,21 +24,20 @@ void PicGNSSFile::init(std::string filepath, bool ifGNSS,  int interval)
 		{  
 			string strName = p->d_name;
 			string postfix = strName.substr(strName.length()-7);
-			bool flag = false;
-			for (auto e:suffix)
+			if(suffix_rgb==postfix&&counter%interval==0)
 			{
-				if(e==postfix)
-				{
-					flag = true;
-				}
+				featFilesRGB.push_back(filepath+"/"+strName);
+				counter++;	
 			}
-			featFiles.push_back(filepath+"/"+strName);
+			else if(suffix_ir==postfix.substr(1)&&counter%interval==0)
+			{
+				featFilesIR.push_back(filepath+"/"+strName);
+			}	
 			
-
 		}
 	}
 	closedir(dir);  //关闭指定目录  
-	fileVolume = featFiles.size();
+	fileVolume = featFilesRGB.size();
 
 	// 根据标志位，读入GNSS坐标信息
 	readTxtGnssLabel(ifGNSS, filepath);
@@ -51,24 +49,35 @@ bool PicGNSSFile::doMainFeatureFile()
 {
 	if (filePointer < fileVolume)
 	{
-		std::ifstream featureFile(featFiles[filePointer]);
-		if (featureFile.is_open())
+		// 读取全局描述子
+		cnpy::NpyArray arr = cnpy::npy_load(featFilesRGB[filePointer]);
+		auto vecD = arr.as_vec<float>();
+		netVLAD = cv::Mat(vecD).reshape(1, 1);
+
+		// 读取局部描述子生成特征
+		cnpy::NpyArray dcs = cnpy::npy_load(featFilesIR[filePointer]);
+		auto vecDesc = dcs.as_vec<float>();
+		mDecs = cv::Mat(vecDesc); // 维度应为C, H, W
+		mDecs.reshape(mDesc.size[0], -1).t();
+
+		// for vgg16-conv3
+		for (size_t h = 0; h < 60; h++)
 		{
-			if(!netVLAD.empty())
-				netVLAD.release();
-			while (!featureFile.eof())
+			for (size_t w = 0; w < 80; w++)
 			{
-				float dim;
-				featureFile >> dim;
-				netVLAD.push_back(dim);
+				cv::KeyPoint kpt(h*4.0+2.0,w*4.0+2.0);
+				mKPts.push_back(kpt);
 			}
-		}
-		netVLAD = netVLAD.reshape(1, 1);
+			
+		}	
+
+
 		if (!latitude.empty() && !longitude.empty())
 		{
 			latitudeValue = latitude[filePointer];
 			longitudeValue = longitude[filePointer];
 		}
+
 		filePointer++;
 		cv::waitKey(1);
 		return true;

@@ -3,7 +3,6 @@
 
 #include "Descriptors/DesriptorFromFile.h"
 #include "Descriptors/GroundTruth.h"
-#include "Frame.h"
 
 class VisualLocalization
 {
@@ -13,8 +12,8 @@ public:
 
 	// 使用flann检索knn结果
 	std::vector<std::vector<int>> getTopKRetrieval(const int& k);
-	// 使用
-	int MatchFrameToFrameFlann(const Frame &frame1, const Frame &frame2);
+	void getBestMatch(const std::vector<std::vector<int>>& topk, std::vector<int>& ret)
+
 
 	void getBestMatch_FeatureFile();
 	bool getDistanceMatrix(float GNSS=30);
@@ -33,6 +32,10 @@ private:
 	std::vector<bool> keyGT, keyPredict, keyGPS;
 	bool withGPS;
 	std::string descriptor;
+
+	// 使用H矩阵筛选topk
+	int MatchFrameToFrameFlann(const Frame &frame1, const Frame &frame2);
+
 
 	/// get a distance matrix, which is as follows:	
 	cv::Mat GPSDistance;

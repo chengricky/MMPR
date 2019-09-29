@@ -11,10 +11,12 @@ public:
 	PicGNSSFile() {};
 	PicGNSSFile(std::string filepath, bool ifGNSS);
 	void init(std::string filepath, bool ifGNSS, int interval=1);
-	//bool doMain();
+
 	bool doMainFeatureFile();
 
 	cv::Mat netVLAD;
+	cv::vector<cv::KeyPoint> mKPts;
+	cv::Mat mDecs;
 	double latitudeValue;
 	double longitudeValue;
 
@@ -23,11 +25,12 @@ public:
 
 
 private:
-	std::vector<double> latitude; //Î³¶È
-	std::vector<double> longitude; //¾­¶È
+	std::vector<double> latitude;
+	std::vector<double> longitude;
 	unsigned long filePointer;
 	unsigned long fileVolume;
-	std::vector<std::string> featFiles;
+	std::vector<std::string> featFilesRGB;
+	std::vector<std::string> featFilesIR;
 
 	// Read GNSS.txt File
 	bool readTxtGnssLabel(bool ifGNSS, std::string filepath);

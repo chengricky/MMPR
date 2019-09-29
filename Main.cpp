@@ -23,6 +23,15 @@ int main()
 
 	auto topk = vl.getTopKRetrieval(10);
 	
+	vector<int> ret;
+	vl.getBestMatch(topk, ret);
+
+	for (auto e : ret)
+	{
+		cout<<e<<endl;
+	}
+	
+
 	//vl.showDistanceMatrix();
 
 	timer.stop();

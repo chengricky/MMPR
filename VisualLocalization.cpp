@@ -124,23 +124,40 @@ vector<vector<int>> VisualLocalization::getTopKRetrieval(const int& k)
 	}
 }
 
-void getBestMatch(const vector<vector<int>>& topk)
+void VisualLocalization::getBestMatch(const vector<vector<int>>& topk, vector<int>& ret)
 {
 	for(int i=0; i<topk.size(); i++)
 	{
+		auto qDesc = featurequery->descs[i];
+		auto qKpt = featurequery->kpts[i];
+		vector<pair<int,int>> numMatches;
 		for (size_t j = 0; j < topk[i].size(); j++)
 		{
-			Frame frame1()
+			auto dbDesc = featuredatabase->descs[topk[i][j]];
+			auto dbKpt = featurdatabase->kpts[topk[i][j]];
+			int numMatch = MatchFrameToFrameFlann(qDesc, qKpt, dbDesc, dbKpt);
+			numMatches.push_back(make_pair<int,int>(numMatch,topk[i][j]));
+		}
+		if(numMatches.empty())
+			ret.push_back(-1);
+		else
+		{
+			auto tmp = std::max_element(numMatches.begin(), numMatches.end(), 
+			[](const pair<int,int>& t1, const pair<int,int>& t2){return t1.first>t2.first} );
+			ret.push_back(tmp->second);
+		
 		}
 		
+
 		
 	}
-	Frame frame
+	
 }
 
-int VisualLocalization::MatchFrameToFrameFlann(const Frame &frame1, const Frame &frame2)
+int VisualLocalization::MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std::vector<cv::KeyPoint>& mKpts1,
+												const cv::Mat &mDspts2, const std::vector<cv::KeyPoint>& mKpts2)
 {
-    if(frame1.mDspts.empty() || frame2.mDspts.empty())
+    if(mDspts1.empty() || mDspts2.empty())
     {
         cout<<"Frame descriptor is empty!\n";
         return 0;
@@ -148,7 +165,7 @@ int VisualLocalization::MatchFrameToFrameFlann(const Frame &frame1, const Frame 
     cv::FlannBasedMatcher flannMatcher(new cv::flann::LshIndexParams(6, 9, 1));
     std::vector<std::vector<cv::DMatch> > kMatches;
 
-    flannMatcher.knnMatch(frame1.mDspts, frame2.mDspts, kMatches, 2);
+    flannMatcher.knnMatch(mDspts1, mDspts2, kMatches, 2);
 
     int good = 0;
 	vector<cv::KeyPoint> qPts, dbPts;
@@ -156,9 +173,8 @@ int VisualLocalization::MatchFrameToFrameFlann(const Frame &frame1, const Frame 
     {
         if (kMatches[i].size() >= 2 && kMatches[i][0].distance*1.0 / kMatches[i][1].distance < 0.7)
         {
-            //good += 1;
-			qPts.push_back(frame1.mKpts[kMatches[i][0].queryIdx]);
-			dbPts.push_back(frame2.mKpts[kMatches[i][0].trainIdx]);
+			qPts.push_back(mKpts1[kMatches[i][0].queryIdx]);
+			dbPts.push_back(mKpts2[kMatches[i][0].trainIdx]);
         }
     }
 	cv::Mat mask;
