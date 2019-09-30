@@ -15,7 +15,7 @@ public:
 	bool doMainFeatureFile();
 
 	cv::Mat netVLAD;
-	cv::vector<cv::KeyPoint> mKPts;
+	std::vector<cv::Point2f> mKPts;
 	cv::Mat mDecs;
 	double latitudeValue;
 	double longitudeValue;

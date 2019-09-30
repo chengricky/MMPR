@@ -1,6 +1,5 @@
 #include "DesriptorFromFile.h"
 #include "../Tools/Timer.h"
-//#include "../Tools/list_dir.h"
 #include "../Tools/GNSSDistance.h"
 
 DescriptorFromFile::DescriptorFromFile(GlobalConfig& config, bool isRefImage)
@@ -10,8 +9,10 @@ DescriptorFromFile::DescriptorFromFile(GlobalConfig& config, bool isRefImage)
 	else
 		picPath = config.pathTest;
 
+
 	// 对图像文件列表和GNSS、是否关键点数据进行赋值
 	picFiles.init(picPath, config.withGPS, config.interval);
+
 
 	while (picFiles.doMainFeatureFile())
 	{
@@ -27,16 +28,20 @@ DescriptorFromFile::DescriptorFromFile(GlobalConfig& config, bool isRefImage)
 
 
 		// save the descriptor of netVLAD
-		Timer timer;
-		timer.start();
+		// Timer timer;
+		// timer.start();
 
-		netVLADs.push_back(picFiles.netVLAD);
+		if(netVLADs.empty())
+			netVLADs = picFiles.netVLAD;
+		else
+			netVLADs.push_back(picFiles.netVLAD);					
+		
 		descs.push_back(picFiles.mDecs);
-		kpts.push_back(picFiles.mKPts)
+		kpts.push_back(picFiles.mKPts);
 
-		timer.stop();
-		std::cout << "Time consumed: ";
-		timer.print_elapsed_time(TimeExt::MSec);
+		// timer.stop();
+		// std::cout << "Time consumed: ";
+		// timer.print_elapsed_time(TimeExt::MSec);
 
 
 	}

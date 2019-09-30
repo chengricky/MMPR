@@ -1,4 +1,4 @@
-#include "Descriptors/PicGnssFile.h"
+#include "Descriptors/DscGnssFile.h"
 #include "VisualLocalization.h"
 #include "Descriptors/GlobalConfig.h"
 #include <iostream>
@@ -11,30 +11,33 @@ GlobalConfig GlobalConfig::config("Config.yaml");
 
 int main()
 {
+	std::cout<<"START!"<<std::endl;
+	
 	static GlobalConfig& config = GlobalConfig::instance();
+	std::cout<<"==>Configuration File is Read."<<std::endl;
+	
 	VisualLocalization vl(config);
 
-	std::cout << "Matching Time consumed: ";
+	
 	Timer timer;
 	timer.start();
 
-	//vl.getBestMatch();
-	//vl.getBestMatch_FeatureFile();
-
 	auto topk = vl.getTopKRetrieval(10);
+	std::cout<<"==>Top-"<<10<<" Retrieval is Ready."<<std::endl;
 	
-	vector<int> ret;
+	std::vector<int> ret;
 	vl.getBestMatch(topk, ret);
 
 	for (auto e : ret)
 	{
-		cout<<e<<endl;
+		std::cout<<e<<std::endl;
 	}
 	
 
 	//vl.showDistanceMatrix();
 
 	timer.stop();
+	std::cout << "Matching Time consumed: ";
 	timer.print_elapsed_time(TimeExt::MSec);
 
 

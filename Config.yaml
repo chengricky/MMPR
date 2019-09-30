@@ -2,8 +2,8 @@
 
 ---
 
-PathRec: "/home/ricky/datasets/Yuquan/Afternoon1"
-PathTest: "/home/ricky/datasets/Yuquan/Dusk1"
+PathRec: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/Gate-T3/database"
+PathTest: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/Gate-T3/query"
 #PathRec: "D:\\2015 Highway Dataset\\Day-netVLAD-patch"
 #PathTest: "D:\\2015 Highway Dataset\\Night-netVLAD-patch"
 

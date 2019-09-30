@@ -2,7 +2,7 @@
 #define DESCRIPTORFROMFILE
 
 #include <vector>
-#include "../Descriptors/PicGnssFile.h"
+#include "../Descriptors/DscGnssFile.h"
 #include "../Descriptors/GlobalConfig.h"
 
 class DescriptorFromFile
@@ -16,7 +16,7 @@ public:
 	cv::Mat GPS;
 	cv::Mat netVLADs;
 	std::vector<cv::Mat> descs;
-	std::vector<cv::vector<cv::KeyPoint>> kpts;
+	std::vector<std::vector<cv::Point2f>> kpts;
 
 	int getVolume() { return picFiles.getFileVolume(); };
 

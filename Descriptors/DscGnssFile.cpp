@@ -1,6 +1,6 @@
 #include "DscGnssFile.h"
 #include <dirent.h>
-#include "../Tools/cnpy.h"
+#include "cnpy.h"
 
 using namespace std;
 
@@ -23,6 +23,9 @@ void PicGNSSFile::init(std::string filepath, bool ifGNSS,  int interval)
 		if(p->d_name[0] != '.')  //d_name是一个char数组，存放当前遍历到的文件名  
 		{  
 			string strName = p->d_name;
+			//std::cout<<strName<<std::endl;
+			if(strName.length()<7)
+				continue;
 			string postfix = strName.substr(strName.length()-7);
 			if(suffix_rgb==postfix&&counter%interval==0)
 			{
@@ -36,12 +39,16 @@ void PicGNSSFile::init(std::string filepath, bool ifGNSS,  int interval)
 			
 		}
 	}
-	closedir(dir);  //关闭指定目录  
+	closedir(dir);  //关闭指定目录 
+	
 	fileVolume = featFilesRGB.size();
+	sort(featFilesRGB.begin(), featFilesRGB.end());
+	sort(featFilesIR.begin(), featFilesIR.end());
 
 	// 根据标志位，读入GNSS坐标信息
 	readTxtGnssLabel(ifGNSS, filepath);
 	filePointer = 0;
+	
 
 }
 
@@ -49,24 +56,25 @@ bool PicGNSSFile::doMainFeatureFile()
 {
 	if (filePointer < fileVolume)
 	{
+		
 		// 读取全局描述子
 		cnpy::NpyArray arr = cnpy::npy_load(featFilesRGB[filePointer]);
 		auto vecD = arr.as_vec<float>();
-		netVLAD = cv::Mat(vecD).reshape(1, 1);
+		netVLAD = cv::Mat(vecD).t();// 1*30k
 
 		// 读取局部描述子生成特征
-		cnpy::NpyArray dcs = cnpy::npy_load(featFilesIR[filePointer]);
-		auto vecDesc = dcs.as_vec<float>();
-		mDecs = cv::Mat(vecDesc); // 维度应为C, H, W
-		mDecs.reshape(mDesc.size[0], -1).t();
-
+		cnpy::NpyArray dcs = cnpy::npy_load(featFilesIR[filePointer]);// 维度应为C, H, W		
+		mDecs = cv::Mat( dcs.shape[0], dcs.shape[2]*dcs.shape[1], CV_32FC1, dcs.data<float>()).t(); // rows,cols
+		
 		// for vgg16-conv3
+		mKPts.clear();
 		for (size_t h = 0; h < 60; h++)
 		{
 			for (size_t w = 0; w < 80; w++)
 			{
-				cv::KeyPoint kpt(h*4.0+2.0,w*4.0+2.0);
+				cv::Point2f kpt(w*4.0f+2.0f, h*4.0f+2.0f); //x,y
 				mKPts.push_back(kpt);
+				
 			}
 			
 		}	
@@ -79,7 +87,6 @@ bool PicGNSSFile::doMainFeatureFile()
 		}
 
 		filePointer++;
-		cv::waitKey(1);
 		return true;
 	}
 	else
@@ -120,7 +127,7 @@ bool PicGNSSFile::readTxtGnssLabel(bool ifGNSS, std::string filepath)
 	{
 		return false;
 	}
-	std::ifstream txtGnssLabel(filepath + "\\of.txt", ios::in);
+	std::ifstream txtGnssLabel(filepath + "/of.txt", ios::in);
 	if (!txtGnssLabel.is_open())
 	{
 		return false;

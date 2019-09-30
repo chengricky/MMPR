@@ -8,33 +8,27 @@ class VisualLocalization
 {
 public:
 	VisualLocalization(GlobalConfig& config);
-	virtual ~VisualLocalization();
 
 	// 使用flann检索knn结果
 	std::vector<std::vector<int>> getTopKRetrieval(const int& k);
-	void getBestMatch(const std::vector<std::vector<int>>& topk, std::vector<int>& ret)
+	void getBestMatch(const std::vector<std::vector<int>>& topk, std::vector<int>& ret);
 
-
-	void getBestMatch_FeatureFile();
-	bool getDistanceMatrix(float GNSS=30);
-	bool getEnhancedDistanceMatrix(int winSize);
 	bool getGlobalSearch();
-
-
 	
 private:
 	// 训练集数据(保存记录的路径)
-	DescriptorFromFile* featurebase;
+	std::shared_ptr<DescriptorFromFile> featurebase;
 	std::vector<std::vector<std::pair<double, int>>> gps;
 
 	// 测试集数据
-	DescriptorFromFile* featurequery;
+	std::shared_ptr<DescriptorFromFile> featurequery;
 	std::vector<bool> keyGT, keyPredict, keyGPS;
 	bool withGPS;
 	std::string descriptor;
 
 	// 使用H矩阵筛选topk
-	int MatchFrameToFrameFlann(const Frame &frame1, const Frame &frame2);
+	int MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std::vector<cv::Point2f>& mKpts1,
+								const cv::Mat &mDspts2, const std::vector<cv::Point2f>& mKpts2);
 
 
 	/// get a distance matrix, which is as follows:	
@@ -44,7 +38,7 @@ private:
 	cv::Mat netVLAD_Distance;
 	
 	
-	cv::Ptr<cv::flann::Index> searchDB; 
+	std::shared_ptr<cv::flann::Index> searchDB; 
 
 
 	//   ----> database
@@ -52,7 +46,7 @@ private:
 	//  |
 	//  V
 	//  query images
-	cv::Mat enhanceMatrix(const cv::Mat& distanceMat, int winSize);
+	// cv::Mat enhanceMatrix(const cv::Mat& distanceMat, int winSize);
 	int matRow, matCol;
 
 
