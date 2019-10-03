@@ -14,5 +14,5 @@ Interval: 1
 # whether use color image
 Color: 1
 # other sensor
-GPS: 0
+GPS: 1
 

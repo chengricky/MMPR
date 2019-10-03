@@ -1,10 +1,10 @@
 #include "VisualLocalization.h"
 #include "Tools/Timer.h"
-//#include <direct.h>
+#include <dirent.h>
 #include <cmath>
 #include "Tools/GNSSDistance.h"
 // #include "SequenceSearch.h"
-// #include "ParameterTuning.h"
+#include "ParameterTuning.h"
 #include "Descriptors/GroundTruth.h"
 #include <iomanip>
 
@@ -15,7 +15,8 @@ using namespace std;
 #define TEST
 //#define GPS_TEST
 
-VisualLocalization::VisualLocalization(GlobalConfig& config)
+VisualLocalization::VisualLocalization(GlobalConfig& config) : geomValRet(std::vector<int>()), 
+												retrievalRet(std::vector<std::vector<int>>())
 { 	
 	if (!config.getValid())
 	{
@@ -43,7 +44,6 @@ VisualLocalization::VisualLocalization(GlobalConfig& config)
 
 bool VisualLocalization::getGlobalSearch()//GPS global best
 {
-#ifdef GPS_TEST
 	/// only GPS localization
 	cv::Mat GPSdistanceMat = GPSDistance;
 	GPSdistanceMat.setTo(FLT_MAX, GPSMask_uchar);
@@ -57,62 +57,110 @@ bool VisualLocalization::getGlobalSearch()//GPS global best
 		GPSGlobalBest.push_back(minPos[1]);
 		delete minPos;
 	}
-#endif // GPS_TEST
-
 	return true;
 }
 
-vector<vector<int>> VisualLocalization::getTopKRetrieval(const int& k)
+bool VisualLocalization::getDistanceMatrix(const float& gnssTh)
 {
-	auto query = featurequery->netVLADs;
-	auto ref = featurebase->netVLADs;
-	if(ref.empty()||query.empty())
-		return vector<vector<int>>();
+	// GPS
+	auto GPSQuery = featurequery->GPS;
+	auto GPSRef = featurebase->GPS;
+	if (GPSQuery.empty() || GPSRef.empty())
+	{
+
+		GPSDistance = cv::Mat();
+		GPSMask_uchar = cv::Mat();
+	}
 	else
 	{
-		vector<vector<int>> vecs;
-		for(int i = 0; i < query.rows; i++)
-		{
-			// cout<<query.row(i).size<<endl;
-			cv::Mat idx, dist;
-			searchDB->knnSearch(query.row(i), idx, dist, k, cv::flann::SearchParams());
-			auto vec = (vector<int>)idx;
-			vecs.push_back(vec);
-		}		
-		return vecs;
+		GPSDistance = cv::Mat(matRow, matCol, CV_32FC1);
+		for (size_t i = 0; i < matRow; i++)
+			for (size_t j = 0; j < matCol; j++)
+				GPSDistance.at<float>(i, j) = GNSSdistance(GPSQuery.at<float>(i,1), GPSQuery.at<float>(i, 0), GPSRef.at<float>(j, 1), GPSRef.at<float>(j, 0));
+		cv::Mat GPSuchar;
+		GPSDistance.convertTo(GPSuchar, CV_8U);
+		cv::threshold(GPSuchar, GPSMask_uchar, gnssTh, 255, cv::THRESH_BINARY_INV);
+		//cv::threshold(GPSDistance, GPSMask, gnssTh, FLT_MAX, cv::THRESH_BINARY_INV);
+		//GPSMask.convertTo(GPSMask_uchar, CV_8U);
 	}
 }
 
-void VisualLocalization::getBestMatch(const vector<vector<int>>& topk, vector<int>& ret)
+void VisualLocalization::getTopKRetrieval(const int& k)
 {
-	for(int i=0; i<topk.size(); i++)
+	auto query = featurequery->netVLADs;
+	auto ref = featurebase->netVLADs;
+	if (!featurequery->GPS.empty() && !featurebase->GPS.empty())
+		getDistanceMatrix(15);
+	
+	if(ref.empty()||query.empty())
+		retrievalRet = vector<vector<int>>();
+	else
+	{
+		for(int i = 0; i < query.rows; i++)
+		{
+			cv::Mat idx, dist;
+			if(GPSMask_uchar.empty())
+			{
+				searchDB->knnSearch(query.row(i), idx, dist, k, cv::flann::SearchParams());
+				retrievalRet.push_back((vector<int>)idx);
+			}
+			else
+			{
+				vector<int> vec;
+				searchDB->knnSearch(query.row(i), idx, dist, k*5, cv::flann::SearchParams());
+				for (size_t j = 0; j < k*5; j++)
+				{
+					auto rest = idx.at<int>(0,j);
+					if(GPSMask_uchar.at<uchar>(i,rest))
+						vec.push_back(rest);
+					if(vec.size()>=k)
+						break;
+				}
+				retrievalRet.push_back(vec);
+			}		
+
+		}		
+	}
+}
+
+void VisualLocalization::getBestGeomValid()
+{
+	for(int i=0; i<retrievalRet.size(); i++)
 	{
 		std::cout<<"Getting Best Match of "<<i<<"-th query."<<std::endl;
 		auto qDesc = featurequery->descs[i];
 		auto qKpt = featurequery->kpts[i];
 		vector<pair<int,int>> numMatches;
-		for (size_t j = 0; j < topk[i].size(); j++)
+		for (size_t j = 0; j < retrievalRet[i].size(); j++)
 		{
-			auto dbDesc = featurebase->descs[topk[i][j]];
-			auto dbKpt = featurebase->kpts[topk[i][j]];
+			auto dbDesc = featurebase->descs[retrievalRet[i][j]];
+			auto dbKpt = featurebase->kpts[retrievalRet[i][j]];
 			int numMatch = MatchFrameToFrameFlann(qDesc, qKpt, dbDesc, dbKpt);
-			numMatches.push_back(std::make_pair(numMatch,topk[i][j]));
+			numMatches.push_back(std::make_pair(numMatch,retrievalRet[i][j]));
 		}
 		if(numMatches.empty())
-			ret.push_back(-1);
+			geomValRet.push_back(-1);
 		else
 		{
 			auto tmp = std::max_element(numMatches.begin(), numMatches.end(), 
 										[](const pair<int,int>& t1, const pair<int,int>& t2){
 											return t1.first>t2.first;
 										} );
-			ret.push_back(tmp->second);
-		
-		}
+			geomValRet.push_back(tmp->second);		
+		}		
+	}	
+}
 
-		
-	}
-	
+void VisualLocalization::getSeqMatch()
+{
+	Parameter2F1 pt(ground.gt, geomValRet, cv::Size(matCol, matRow));
+	float p, r ;
+	pt.placeRecognition();
+	generateVideo(pt.getMatchingResults());
+	std::cout << "F1" << "\t" << "p" << "\t" << "r" << std::endl;
+	std::cout << pt.calculateF1score(&p, &r) << "\t" << p << "\t" << r << std::endl;
+	std::cout << "Error" << std::endl;
+	std::cout << pt.calculateErr() << std::endl;
 }
 
 int VisualLocalization::MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std::vector<cv::Point2f>& mKpts1,
@@ -140,7 +188,7 @@ int VisualLocalization::MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std
         }
     }
 	cv::Mat mask;
-	cv::findHomography(qPts, dbPts, cv::RANSAC, 5, mask);	//TODO:调整阈值？
+	cv::findHomography(qPts, dbPts, cv::RANSAC, 2, mask);	//TODO:调整阈值？
 	for(int i = 0;i < mask.cols; i++)
 	{
 		auto pRow = mask.ptr<uchar>(i);
@@ -164,31 +212,37 @@ std::string getTimeStamp()
 	return timeStampStream.str();
 }
 
-
-
-/**
-* @brief This method computes the Hamming distance between two binary
-* descriptors
-* @param desc1 First descriptor
-* @param desc2 Second descriptor
-* @return Hamming distance between the two descriptors
-*/
-int hamming_matching(cv::Mat desc1, cv::Mat desc2) {
-
-	int distance = 0;
-
-	if (desc1.rows != desc2.rows || desc1.cols != desc2.cols || desc1.rows != 1 || desc2.rows != 1) {
-
-		std::cout << "The dimension of the descriptors is different." << std::endl;
-		return -1;
-
-	}
-
-	for (int i = 0; i < desc1.cols; i++) {
-		distance += (*(desc1.ptr<unsigned char>(0) + i)) ^ (*(desc2.ptr<unsigned char>(0) + i));
-	}
-
-	return distance;
-
+#include <sys/stat.h>
+#include <sys/types.h>
+bool VisualLocalization::generateVideo(std::vector<int> matchingResults, std::string path)
+{
+	// if (path.empty())
+	// {
+	// 	DIR *dir;
+	// 	if ((dir = opendir("results")) == NULL)
+	// 		mkdir("results", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	// 	path = "results\\";
+	// 	path += getTimeStamp()+".avi";
+	// }
+	// cv::VideoWriter writer(path, cv::VideoWriter::fourcc('F', 'L', 'V', '1'), 1.0, cv::Size(320, 240 * 2));
+	// if (!writer.isOpened())
+	// {
+	// 	writer.release();
+	// 	return false;
+	// }
+	// for (size_t i = 0; i < matchingResults.size(); i++)
+	// {
+	// 	cv::Mat query_database = cv::imread(descriptorquery->picFiles.getColorImgPath(i));
+	// 	if (matchingResults[i]!=-1)
+	// 	{
+	// 		query_database.push_back(cv::imread(descriptorbase->picFiles.getColorImgPath(matchingResults[i])));
+	// 	}
+	// 	else
+	// 	{
+	// 		query_database.push_back(cv::Mat(cv::Size(320, 240), CV_8UC3, cv::Scalar(0, 0, 0)));
+	// 	}
+	// 	writer << query_database;
+	// }
+	// writer.release();
+	return true;
 }
-

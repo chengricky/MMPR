@@ -10,10 +10,21 @@ public:
 	VisualLocalization(GlobalConfig& config);
 
 	// 使用flann检索knn结果
-	std::vector<std::vector<int>> getTopKRetrieval(const int& k);
-	void getBestMatch(const std::vector<std::vector<int>>& topk, std::vector<int>& ret);
+	void getTopKRetrieval(const int& k);
+
+	// 使用几何验证获得最佳匹配结果
+	void getBestGeomValid();
+
+	// 使用序列匹配获得最终定位结果
+	void getSeqMatch();
 
 	bool getGlobalSearch();
+
+	// 获得视觉定位各阶段结果
+	std::vector<std::vector<int>> getRetrievalRet(){return retrievalRet;};
+	std::vector<int> getGeomValRet(){return geomValRet;};
+
+
 	
 private:
 	// 训练集数据(保存记录的路径)
@@ -22,20 +33,24 @@ private:
 
 	// 测试集数据
 	std::shared_ptr<DescriptorFromFile> featurequery;
-	std::vector<bool> keyGT, keyPredict, keyGPS;
 	bool withGPS;
 	std::string descriptor;
 
 	// 使用H矩阵筛选topk
 	int MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std::vector<cv::Point2f>& mKpts1,
 								const cv::Mat &mDspts2, const std::vector<cv::Point2f>& mKpts2);
+	bool generateVideo(std::vector<int> matchingResults, std::string path="");
+	bool getDistanceMatrix(const float& gnssTh);
 
+	// 检索、几何验证的结果
+	std::vector<std::vector<int>> retrievalRet;
+	std::vector<int> geomValRet;
 
 	/// get a distance matrix, which is as follows:	
 	cv::Mat GPSDistance;
 	cv::Mat GPSMask_uchar;
 
-	cv::Mat netVLAD_Distance;
+	// cv::Mat netVLAD_Distance;
 	
 	
 	std::shared_ptr<cv::flann::Index> searchDB; 
@@ -56,8 +71,5 @@ private:
 
 	GroundTruth ground;
 };
-
-// 计算二进制描述符的汉明距离
-int hamming_matching(cv::Mat desc1, cv::Mat desc2);
 
 #endif

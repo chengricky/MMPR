@@ -6,6 +6,7 @@
 #include <cmath>
 #include "Header.h"
 #include "Tools/Timer.h"
+#include "ParameterTuning.h"
 
 GlobalConfig GlobalConfig::config("Config.yaml");
 
@@ -17,24 +18,18 @@ int main()
 	std::cout<<"==>Configuration File is Read."<<std::endl;
 	
 	VisualLocalization vl(config);
-
 	
 	Timer timer;
 	timer.start();
 
-	auto topk = vl.getTopKRetrieval(10);
-	std::cout<<"==>Top-"<<10<<" Retrieval is Ready."<<std::endl;
+	vl.getTopKRetrieval(10);
+	std::cout<<"==>Top-"<<10<<" Retrieval is Ready."<<std::endl;	
 	
-	std::vector<int> ret;
-	vl.getBestMatch(topk, ret);
+	vl.getBestGeomValid();
+	std::cout<<"==>Best Match is Obatained from Geometric Validation."<<std::endl;
 
-	for (auto e : ret)
-	{
-		std::cout<<e<<std::endl;
-	}
-	
-
-	//vl.showDistanceMatrix();
+	vl.getSeqMatch();
+	std::cout<<"==>Sequential Matching is Ready."<<std::endl;
 
 	timer.stop();
 	std::cout << "Matching Time consumed: ";
