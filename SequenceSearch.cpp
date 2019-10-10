@@ -43,11 +43,16 @@ void SequenceSearch::coneSearch(const bool& biDirection, const bool& isOnlineMod
 					max_x = std::min(int((k - i)*vmax + j), matSize.width -1);
 					min_x = (k - i)*vmin + j;
 				}
-				if (globalResult[k]>=min_x && globalResult[k]<=max_x)
+				if (globalResult[k][0]>=min_x && globalResult[k][0]<=max_x)
 					count++;
-				else if(biDirection && globalResult[k] >= std::min(2 * j - max_x, matSize.width - 1) 
-					 && globalResult[k] <= std::min(2 * j - min_x, matSize.width - 1))
+				else if(biDirection && globalResult[k][0] >= std::min(2 * j - max_x, matSize.width - 1) 
+					 && globalResult[k][0] <= std::min(2 * j - min_x, matSize.width - 1))
 					count++;
+				if (globalResult[k][1]>=min_x && globalResult[k][1]<=max_x)
+					count++;
+				else if(biDirection && globalResult[k][1] >= std::min(2 * j - max_x, matSize.width - 1) 
+					 && globalResult[k][1] <= std::min(2 * j - min_x, matSize.width - 1))
+					count++;					
 			}
 			if (count)
 			{

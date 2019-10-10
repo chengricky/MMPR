@@ -22,8 +22,7 @@ public:
 
 	// 获得视觉定位各阶段结果
 	std::vector<std::vector<int>> getRetrievalRet(){return retrievalRet;};
-	std::vector<int> getGeomValRet(){return geomValRet;};
-
+	std::vector<cv::Vec2i> getGeomValRet(){return geomValRet;};
 
 	
 private:
@@ -44,26 +43,19 @@ private:
 
 	// 检索、几何验证的结果
 	std::vector<std::vector<int>> retrievalRet;
-	std::vector<int> geomValRet;
+	std::vector<cv::Vec2i> geomValRet;
 
 	/// get a distance matrix, which is as follows:	
-	cv::Mat GPSDistance;
-	cv::Mat GPSMask_uchar;
-
-	// cv::Mat netVLAD_Distance;
-	
-	
-	std::shared_ptr<cv::flann::Index> searchDB; 
-
-
 	//   ----> database
 	//  |
 	//  |
 	//  V
-	//  query images
-	// cv::Mat enhanceMatrix(const cv::Mat& distanceMat, int winSize);
+	//  query images	
 	int matRow, matCol;
-
+	cv::Mat GPSDistance;
+	cv::Mat GPSMask_uchar;
+	
+	std::shared_ptr<cv::flann::Index> searchDB; 
 
 	// 最佳匹配结果
 	std::vector<int> GPSGlobalBest;

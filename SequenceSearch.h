@@ -6,14 +6,14 @@
 
 class SequenceSearch
 {
-	std::vector<int> globalResult;//0-based
+	std::vector<cv::Vec2i> globalResult;//0-based
 	cv::Size matSize;
 	int numSearch;
 	float vmin, vmax;
 
 public:
 	SequenceSearch() {};
-	void init(std::vector<int> globalResult, cv::Size matSize, int numSearch, float vmin, float vmax)
+	void init(std::vector<cv::Vec2i> globalResult, cv::Size matSize, int numSearch, float vmin, float vmax)
 	{
 		this->globalResult = (globalResult);
 		this->matSize = matSize;

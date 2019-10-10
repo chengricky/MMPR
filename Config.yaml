@@ -11,6 +11,11 @@ PathTest: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/Gate-T3/q
 FileType: 1
 Interval: 1
 
+cx: 161.5
+cy: 119.8
+fx: 288.4
+fy: 288.4
+
 # whether use color image
 Color: 1
 # other sensor

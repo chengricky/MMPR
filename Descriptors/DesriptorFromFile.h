@@ -15,8 +15,9 @@ public:
 	std::string picPath;
 	cv::Mat GPS;
 	cv::Mat netVLADs;
-	std::vector<cv::Mat> descs;
+	std::vector<cv::Mat> descs;	
 	std::vector<std::vector<cv::Point2f>> kpts;
+	std::vector<cv::Mat> pt3dNorms; // 注意与kpt是不匹配的
 
 	int getVolume() { return picFiles.getFileVolume(); };
 

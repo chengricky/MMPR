@@ -3,7 +3,7 @@
 #include <dirent.h>
 #include <cmath>
 #include "Tools/GNSSDistance.h"
-// #include "SequenceSearch.h"
+#include "opencv2/surface_matching/icp.hpp"
 #include "ParameterTuning.h"
 #include "Descriptors/GroundTruth.h"
 #include <iomanip>
@@ -15,7 +15,7 @@ using namespace std;
 #define TEST
 //#define GPS_TEST
 
-VisualLocalization::VisualLocalization(GlobalConfig& config) : geomValRet(std::vector<int>()), 
+VisualLocalization::VisualLocalization(GlobalConfig& config) : geomValRet(std::vector<cv::Vec2i>()), 
 												retrievalRet(std::vector<std::vector<int>>())
 { 	
 	if (!config.getValid())
@@ -130,24 +130,45 @@ void VisualLocalization::getBestGeomValid()
 		std::cout<<"Getting Best Match of "<<i<<"-th query."<<std::endl;
 		auto qDesc = featurequery->descs[i];
 		auto qKpt = featurequery->kpts[i];
+		auto qPtNorm = featurequery->pt3dNorms[i];
 		vector<pair<int,int>> numMatches;
+		vector<pair<double,int>> errors;
 		for (size_t j = 0; j < retrievalRet[i].size(); j++)
 		{
 			auto dbDesc = featurebase->descs[retrievalRet[i][j]];
 			auto dbKpt = featurebase->kpts[retrievalRet[i][j]];
+			auto dbPtNorm = featurebase->pt3dNorms[retrievalRet[i][j]];
+			double residual;
+			cv::Matx44d pose;
+			cv::ppf_match_3d::ICP icp;
+			icp.registerModelToScene(dbPtNorm, qPtNorm, residual, pose);
+			errors.push_back(std::make_pair(residual, retrievalRet[i][j]));
+
 			int numMatch = MatchFrameToFrameFlann(qDesc, qKpt, dbDesc, dbKpt);
 			numMatches.push_back(std::make_pair(numMatch,retrievalRet[i][j]));
 		}
-		if(numMatches.empty())
-			geomValRet.push_back(-1);
+		cv::Vec2i tmp;
+		if(errors.empty())
+			tmp[0] = -1;
 		else
 		{
-			auto tmp = std::max_element(numMatches.begin(), numMatches.end(), 
+			auto tmp_err = std::max_element(errors.begin(), errors.end(), 
+										[](const pair<int,int>& t1, const pair<int,int>& t2){
+											return t1.first<t2.first;
+										} );
+			tmp[0] = -1;//tmp_err->second;	
+		}			
+		if(numMatches.empty())
+			tmp[1] = -1;
+		else
+		{
+			auto tmp_num = std::max_element(numMatches.begin(), numMatches.end(), 
 										[](const pair<int,int>& t1, const pair<int,int>& t2){
 											return t1.first>t2.first;
 										} );
-			geomValRet.push_back(tmp->second);		
+			tmp[1] = tmp_num->second;		
 		}		
+		geomValRet.push_back(tmp);
 	}	
 }
 
@@ -175,7 +196,7 @@ int VisualLocalization::MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std
     std::vector<std::vector<cv::DMatch> > kMatches;
 
 	assert(mDspts2.rows>2);
-    flannMatcher.knnMatch(mDspts1, mDspts2, kMatches,3);
+    flannMatcher.knnMatch(mDspts1, mDspts2, kMatches, 2);
 
     int good = 0;
 	vector<cv::Point2f> qPts, dbPts;

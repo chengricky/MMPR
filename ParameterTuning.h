@@ -19,14 +19,15 @@ struct Params
 class Parameter2F1
 {
 	std::vector<std::vector<int>> gt;
-	std::vector<int> pGlobal;
+	std::vector<cv::Vec2i> pGlobal;
 	Params parameters;
 	std::vector<int> matchingResults; // -1 means empty, 1-based results
 	cv::Size matSize;
 	SequenceSearch pSS;
 
 public:
-	Parameter2F1(std::vector<std::vector<int>> gt, std::vector<int> GlobalBest, cv::Size matSize) : gt(gt), pGlobal(GlobalBest), matSize(matSize) { };
+	Parameter2F1(std::vector<std::vector<int>> gt, std::vector<cv::Vec2i> GlobalBest, cv::Size matSize) : 
+				gt(gt), pGlobal(GlobalBest), matSize(matSize) { };
 	~Parameter2F1() { };
 	//update different parameters
 	void updateParams(float vmax, float vmin, float numseq)

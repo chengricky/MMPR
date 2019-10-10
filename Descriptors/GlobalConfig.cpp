@@ -20,12 +20,13 @@ bool GlobalConfig::readConfig()
 	}
 	fs["PathRec"] >> pathRec;
 	fs["PathTest"] >> pathTest;
-
 	fs["FileType"] >> fileType;
-
 	fs["Interval"] >> interval;
-
 	fs["GPS"] >> withGPS;
+	fs["fx"]>>fx;
+	fs["fy"]>>fy;
+	fs["cx"]>>cx;
+	fs["cy"]>>cy;
 
 	return true;
 }

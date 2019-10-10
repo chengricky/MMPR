@@ -35,7 +35,7 @@ public:
 	//彩色图保持为彩色图(1)或转换为灰度图(0)
 	bool withGPS;
 	
-
+	float cx, cy, fx, fy;
 
 	// config valid
 	bool valid;

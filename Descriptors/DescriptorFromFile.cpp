@@ -9,12 +9,12 @@ DescriptorFromFile::DescriptorFromFile(GlobalConfig& config, bool isRefImage)
 	else
 		picPath = config.pathTest;
 
-
 	// 对图像文件列表和GNSS、是否关键点数据进行赋值
-	picFiles.init(picPath, config.withGPS, config.interval);
+	picFiles.collectFileVec(picPath, config.withGPS, 
+							config.cx, config.cy, config.fx, config.fy, config.interval);
 
 
-	while (picFiles.doMainFeatureFile())
+	while (picFiles.getNextFrame())
 	{
 		/*GPS*/
 		if (picFiles.longitudeValue!=0 || picFiles.latitudeValue!=0)
@@ -38,6 +38,10 @@ DescriptorFromFile::DescriptorFromFile(GlobalConfig& config, bool isRefImage)
 		
 		descs.push_back(picFiles.mDecs);
 		kpts.push_back(picFiles.mKPts);
+		
+		pt3dNorms.push_back( picFiles.ptNorm );
+
+
 
 		// timer.stop();
 		// std::cout << "Time consumed: ";
