@@ -209,6 +209,10 @@ int VisualLocalization::MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std
         }
     }
 	cv::Mat mask;
+	if(qPts.size()==0)
+	{
+		return 0;
+	}
 	cv::findHomography(qPts, dbPts, cv::RANSAC, 2, mask);	//TODO:µ÷ÕûãÐÖµ£¿
 	for(int i = 0;i < mask.cols; i++)
 	{

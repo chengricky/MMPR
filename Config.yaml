@@ -2,10 +2,8 @@
 
 ---
 
-PathRec: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/Gate-T3/database"
-PathTest: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/Gate-T3/query"
-#PathRec: "D:\\2015 Highway Dataset\\Day-netVLAD-patch"
-#PathTest: "D:\\2015 Highway Dataset\\Night-netVLAD-patch"
+PathRec: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/T3-Lib-res-a-rgb/reference"
+PathTest: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/T3-Lib-res-a-rgb/query"
 
 # read "Feature" from files
 FileType: 1

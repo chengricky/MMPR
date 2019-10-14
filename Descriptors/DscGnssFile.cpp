@@ -65,10 +65,12 @@ bool PicGNSSFile::getNextFrame()
 		cnpy::NpyArray arr = cnpy::npy_load(featFilesRGB[filePointer]);
 		auto vecD = arr.as_vec<float>();
 		netVLAD = cv::Mat(vecD).t(); //size~1*30k
+		
 
 		// 读取局部描述子生成特征
 		cnpy::NpyArray dcs = cnpy::npy_load(featFilesIR[filePointer]);// 维度应为C, H, W		
 		mDecs = cv::Mat( dcs.shape[0], dcs.shape[2]*dcs.shape[1], CV_32FC1, dcs.data<float>()).t(); // rows,cols
+		assert(dcs.shape[2]*dcs.shape[1]==4800);
 		
 		// get local key points for vgg16-conv3
 		std::vector<cv::Point2f>().swap(mKPts);

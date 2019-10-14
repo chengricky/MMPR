@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(SeqPR VERSION 0.1.0)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Release")
 
 # set the directory of executable files
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SeqPR_SOURCE_DIR}/bin)
