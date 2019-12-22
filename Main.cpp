@@ -1,4 +1,4 @@
-#include "Descriptors/DscGnssFile.h"
+
 #include "VisualLocalization.h"
 #include "Descriptors/GlobalConfig.h"
 #include <iostream>
@@ -6,7 +6,7 @@
 #include <cmath>
 #include "Header.h"
 #include "Tools/Timer.h"
-#include "ParameterTuning.h"
+
 
 GlobalConfig GlobalConfig::config("Config.yaml");
 
@@ -22,18 +22,22 @@ int main()
 	Timer timer;
 	timer.start();
 
-	vl.getTopKRetrieval(10);
-	std::cout<<"==>Top-"<<10<<" Retrieval is Ready."<<std::endl;	
+	int k=5;
+	vl.getTopKRetrieval(k);
+	std::cout<<"==>Top-"<<k<<" Retrieval is Ready."<<std::endl;	
 	
-	vl.getBestGeomValid();
-	std::cout<<"==>Best Match is Obatained from Geometric Validation."<<std::endl;
-
-	vl.getSeqMatch();
+	auto ret = vl.getSeqMatch();
 	std::cout<<"==>Sequential Matching is Ready."<<std::endl;
 
 	timer.stop();
 	std::cout << "Matching Time consumed: ";
 	timer.print_elapsed_time(TimeExt::MSec);
+
+	for (auto e : ret)
+	{
+		std::cout<<e<<std::endl;
+	}
+	
 
 
 	cv::waitKey(0);

@@ -3,29 +3,36 @@
 #define SEQUENCESEARCH_H
 
 #include "Header.h"
+#include "Descriptors/GlobalConfig.h"
 
 class SequenceSearch
 {
-	std::vector<cv::Vec2i> globalResult;//0-based
 	cv::Size matSize;
 	int numSearch;
 	float vmin, vmax;
+	bool biDirection, isOnlineMode;
+
+	//window thresholding
+	int window;
+	float ratioTh;
+
+	std::vector<int> ret;
+	cv::Mat scoreMat;	
+	std::string retPath;
 
 public:
-	SequenceSearch() {};
-	void init(std::vector<cv::Vec2i> globalResult, cv::Size matSize, int numSearch, float vmin, float vmax)
-	{
-		this->globalResult = (globalResult);
-		this->matSize = matSize;
-		this->numSearch = numSearch;
-		this->vmax = vmax;
-		this->vmin = vmin;
-	};
+	SequenceSearch(cv::Size matSize, const GlobalConfig& config, const bool& biDirection=false):
+					matSize(matSize), numSearch(config.n_q), vmax(config.v_max), 
+					vmin(config.v_min), window(config.window), ratioTh(config.ratioTh),
+					retPath(config.retPath), biDirection(biDirection), isOnlineMode(config.online){ };
 	~SequenceSearch() {};
 
-	void trajectorySearch();
-	void coneSearch(const bool& biDirection=false, const bool& isOnlineMode = true);
-	cv::Mat scoreMat;	
+	void coneSearch(std::vector<std::vector<std::pair<int, float>>> globalResult);
+
+	void windowedUniquenessThresholding();
+
+	std::vector<int> getRet();
+	
 };
 
 #endif

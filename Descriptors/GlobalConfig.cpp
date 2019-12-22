@@ -20,13 +20,15 @@ bool GlobalConfig::readConfig()
 	}
 	fs["PathRec"] >> pathRec;
 	fs["PathTest"] >> pathTest;
-	fs["FileType"] >> fileType;
 	fs["Interval"] >> interval;
-	fs["GPS"] >> withGPS;
-	fs["fx"]>>fx;
-	fs["fy"]>>fy;
-	fs["cx"]>>cx;
-	fs["cy"]>>cy;
+	fs["RetPath"] >> retPath;
+	fs["n_q"] >> n_q;
+	fs["v_max"] >> v_max;
+	fs["v_min"] >> v_min;
+	fs["online"] >> online;
+	fs["ratioTh"] >> ratioTh;
+	fs["window"] >> window;
+	fs["UseSceneNum"]>>sceneTopK;
 
 	return true;
 }

@@ -27,15 +27,13 @@ public:
 	bool getValid() const { return valid; };
 
 	// the configs
-	std::string pathRec;
-	std::string pathTest;
-	bool fileType; // true=feature, false=image
-	int interval;
+	std::string pathRec, pathTest, retPath;
+	int interval, n_q, window, sceneTopK;
+	bool online;
+	float v_min, v_max, ratioTh;
 
-	//彩色图保持为彩色图(1)或转换为灰度图(0)
-	bool withGPS;
-	
-	float cx, cy, fx, fy;
+
+
 
 	// config valid
 	bool valid;

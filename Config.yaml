@@ -2,20 +2,30 @@
 
 ---
 
-PathRec: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/T3-Lib-res-a-rgb/reference"
-PathTest: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/T3-Lib-res-a-rgb/query"
+PathRec: "/localresearch/VisualLocalization/Dataset/Self-collected/HangzhouCity/Ret/westlake-5-scene10/database"
+PathTest: "/localresearch/VisualLocalization/Dataset/Self-collected/HangzhouCity/Ret/westlake-5-scene10/query"
+RetPath: "/localresearch/VisualLocalization/Dataset/Self-collected/HangzhouCity/Ret/westlake-5-scene10"
 
-# read "Feature" from files
+# FileType: read "Feature" from files, true=feature, false=image
 FileType: 1
 Interval: 1
 
-cx: 161.5
-cy: 119.8
-fx: 288.4
-fy: 288.4
+# Parameters of Image Retrieval
+TopK: 10
+UseSceneNum: 5
 
-# whether use color image
-Color: 1
-# other sensor
-GPS: 1
+# Parameters of sequence searching
+n_q: 10
+online: 1
+v_max: 2.5
+v_min: 0.4
+
+window: 10
+ratioTh: 2
+
+
+
+
+
+
 
