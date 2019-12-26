@@ -2,9 +2,9 @@
 
 ---
 
-PathRec: "/localresearch/VisualLocalization/Dataset/Self-collected/HangzhouCity/Ret/westlake-5-scene10/database"
-PathTest: "/localresearch/VisualLocalization/Dataset/Self-collected/HangzhouCity/Ret/westlake-5-scene10/query"
-RetPath: "/localresearch/VisualLocalization/Dataset/Self-collected/HangzhouCity/Ret/westlake-5-scene10"
+PathRec: "/localresearch/VisualLocalization/Dataset/dataset GardensPointWalking/day/database"
+PathTest: "/localresearch/VisualLocalization/Dataset/dataset GardensPointWalking/day/query"
+RetPath: "/localresearch/VisualLocalization/Dataset/dataset GardensPointWalking/day"
 
 # FileType: read "Feature" from files, true=feature, false=image
 FileType: 1
@@ -21,7 +21,7 @@ v_max: 2.5
 v_min: 0.4
 
 window: 10
-ratioTh: 2
+ratioTh: 1.2
 
 
 
