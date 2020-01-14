@@ -1,6 +1,6 @@
 #include "Descriptors/DscGnssFile.h"
 #include "VisualLocalization.h"
-#include "Descriptors/GlobalConfig.h"
+#include "Tools/GlobalConfig.h"
 #include <iostream>
 #include <iomanip>
 #include <cmath>
@@ -8,33 +8,35 @@
 #include "Tools/Timer.h"
 #include "ParameterTuning.h"
 
-GlobalConfig GlobalConfig::config("Config.yaml");
+
 
 int main()
 {
 	std::cout<<"START!"<<std::endl;
 	
-	static GlobalConfig& config = GlobalConfig::instance();
+	GlobalConfig config("Config.yaml");
 	std::cout<<"==>Configuration File is Read."<<std::endl;
 	
 	VisualLocalization vl(config);
-	
-	Timer timer;
-	timer.start();
+	vl.readDatabase();
+	vl.readGroundTruth();
+	vl.readQuery();
 
-	vl.getTopKRetrieval(10);
-	std::cout<<"==>Top-"<<10<<" Retrieval is Ready."<<std::endl;	
-	
-	vl.getBestGeomValid();
-	std::cout<<"==>Best Match is Obatained from Geometric Validation."<<std::endl;
+	while(true)
+	{
+		Timer timer;
+		timer.start();
 
-	vl.getSeqMatch();
-	std::cout<<"==>Sequential Matching is Ready."<<std::endl;
+		auto flag = vl.localizeQuery();
 
-	timer.stop();
-	std::cout << "Matching Time consumed: ";
-	timer.print_elapsed_time(TimeExt::MSec);
+		timer.stop();
+		std::cout << "Matching Time consumed: ";
+		timer.print_elapsed_time(TimeExt::MSec);
+		if(!flag)
+			break;
+	}
 
+	vl.getPerformance();
 
 	cv::waitKey(0);
 	return 0;

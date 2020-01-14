@@ -6,9 +6,6 @@
 
 using namespace std;
 
-// int computeNormalsPC3d(const cv::Mat& PC, cv::Mat& PCNormals, const int NumNeighbors, 
-// 						const bool FlipViewpoint, const cv::Vec3f& viewpoint);
-
 void PicGNSSFile::collectFileVec(std::string filepath, bool ifGNSS,
 								float cx, float cy, float fx, float fy, int interval)
 {
@@ -56,6 +53,52 @@ void PicGNSSFile::collectFileVec(std::string filepath, bool ifGNSS,
 	filePointer = 0;
 }
 
+bool PicGNSSFile::generate3DPts(int gridSize)
+{
+	cv::Mat imgD = cv::imread(imgFilesDepth[filePointer], cv::IMREAD_ANYDEPTH);
+	cv::resize(imgD, imgD, cv::Size(), 0.25, 0.25, cv::INTER_AREA); // average pooling
+
+	// 计算法向量
+	cv::Mat pointCloud, pointNormal;
+	// std::vector<bool> remain;
+	for (size_t i = 0; i < imgD.rows; i++)
+	{
+		for (size_t j = 0; j < imgD.cols; j++)
+		{				
+			float z = imgD.at<ushort>(i, j);
+			// if( z < 10 || z > 65500)
+			// 	continue;
+			cv::Mat point3D = cv::Mat(1, 3, CV_32FC1, cv::Scalar(0));
+			point3D.at<float>(0, 0) = (j-cx)*z/fx;
+			point3D.at<float>(0, 1) = (i-cy)*z/fy;
+			point3D.at<float>(0, 2) = z;
+			pointCloud.push_back(point3D);
+			// if((i-2)%4==0 && (j-2)%4==0)
+			// {						
+			// 	remain.push_back(true);
+			// }					
+			// else
+			// 	remain.push_back(false);				
+		}
+	}
+
+	cv::ppf_match_3d::computeNormalsPC3d(pointCloud, pointNormal, 15, false, cv::Vec3f(0, 0, 0));
+	
+	if(!frame.ptNorm.empty())
+		frame.ptNorm.release();
+	frame.ptNorm = pointNormal;
+	// for (size_t i = 0; i < remain.size(); i++)
+	// {
+	// 	// if(remain[i])
+	// 	// {
+	// 		if(frame.ptNorm.empty())
+	// 			frame.ptNorm = pointNormal.row(i);
+	// 		else
+	// 			frame.ptNorm.push_back(pointNormal.row(i));
+	// 	// }				
+	// }
+}
+
 bool PicGNSSFile::getNextFrame()
 {
 	if (filePointer < fileVolume)
@@ -64,69 +107,27 @@ bool PicGNSSFile::getNextFrame()
 		// 读取NetVLAD全局描述子
 		cnpy::NpyArray arr = cnpy::npy_load(featFilesRGB[filePointer]);
 		auto vecD = arr.as_vec<float>();
-		netVLAD = cv::Mat(vecD).t(); //size~1*30k
+		frame.netVLAD = cv::Mat(vecD).t(); //size~1*30k
 		
 
 		// 读取局部描述子生成特征
 		cnpy::NpyArray dcs = cnpy::npy_load(featFilesIR[filePointer]);// 维度应为C, H, W		
-		mDecs = cv::Mat( dcs.shape[0], dcs.shape[2]*dcs.shape[1], CV_32FC1, dcs.data<float>()).t(); // rows,cols
+		frame.mDecs = cv::Mat( dcs.shape[0], dcs.shape[2]*dcs.shape[1], CV_32FC1, dcs.data<float>()).t(); // rows,cols
 		assert(dcs.shape[2]*dcs.shape[1]==4800);
 		
 		// get local key points for vgg16-conv3
-		std::vector<cv::Point2f>().swap(mKPts);
+		std::vector<cv::Point2f>().swap(frame.mKPts);
 		for (int h = 0; h < 60; h++)
 			for (int w = 0; w < 80; w++)
-				mKPts.push_back(cv::Point2f(w*4.0f+2.0f, h*4.0f+2.0f));			//x,y			
-
-		cv::Mat imgD = cv::imread(imgFilesDepth[filePointer], cv::IMREAD_ANYDEPTH);
-		// 计算法向量
-		cv::Mat pointCloud, pointNormal;
-		std::vector<bool> remain;
-		for (size_t i = 0; i < imgD.rows; i++)
-		{
-			for (size_t j = 0; j < imgD.cols; j++)
-			{				
-				float z = imgD.at<ushort>(i, j);
-				if( z < 10 || z > 65500)
-					continue;
-				cv::Mat point3D = cv::Mat(1, 3, CV_32FC1, cv::Scalar(0));
-				point3D.at<float>(0, 0) = (j-cx)*z/fx;
-				point3D.at<float>(0, 1) = (i-cy)*z/fy;
-				point3D.at<float>(0, 2) = z;
-				pointCloud.push_back(point3D);
-				if((i-2)%4==0 && (j-2)%4==0)
-				{						
-					remain.push_back(true);
-				}					
-				else
-					remain.push_back(false);				
-			}
-		}
-
-		// cv::Vec2f xr ,yr ,zr;
-		// cv::ppf_match_3d::computeBboxStd(pointCloud, xr, yr, zr);
-		// std::cout<<xr<<" "<<yr<<" "<<zr<<std::endl;
-		cv::ppf_match_3d::computeNormalsPC3d(pointCloud, pointNormal, 6, false, cv::Vec3f(0, 0, 0));
-		
-		// ptNorm = pointNormal;
-		if(!ptNorm.empty())
-			ptNorm.release();
-		for (size_t i = 0; i < remain.size(); i++)
-		{
-			if(remain[i])
-			{
-				if(ptNorm.empty())
-					ptNorm = pointNormal.row(i);
-				else
-					ptNorm.push_back(pointNormal.row(i));
-			}				
-		}
+				frame.mKPts.push_back(cv::Point2f(w*4.0f+2.0f, h*4.0f+2.0f));			//x,y			
 		
 		if (!latitude.empty() && !longitude.empty())
 		{
-			latitudeValue = latitude[filePointer];
-			longitudeValue = longitude[filePointer];
+			frame.latitudeValue = latitude[filePointer];
+			frame.longitudeValue = longitude[filePointer];
 		}
+
+		generate3DPts();
 
 		filePointer++;
 		return true;

@@ -1,16 +1,47 @@
 #ifndef _VISUALLOCALIZATION_H
 #define _VISUALLOCALIZATION_H
 
+#include "ParameterTuning.h"
 #include "Descriptors/DesriptorFromFile.h"
 #include "Descriptors/GroundTruth.h"
+#include <memory>
 
 class VisualLocalization
 {
 public:
-	VisualLocalization(GlobalConfig& config);
+	VisualLocalization(const GlobalConfig& config);
 
-	// 使用flann检索knn结果
-	void getTopKRetrieval(const int& k);
+	bool readDatabase();
+
+	bool readQuery();
+
+	bool readGroundTruth();
+
+	bool localizeQuery();
+
+	bool getGlobalSearch();
+
+	void getPerformance();
+
+	// 获得视觉定位各阶段结果
+	std::vector<int> getRetrievalRet(){return retrievalRet;};
+	cv::Vec2i getGeomValRet(){return geomValRet;};
+
+	
+private:
+	std::shared_ptr<GlobalConfig> configPtr;
+
+	// 训练集数据(保存记录的路径)
+	std::shared_ptr<DescriptorFromFile> featurebase;
+	std::vector<std::vector<std::pair<double, int>>> gps;
+
+	// 测试集数据
+	std::shared_ptr<PartialDescriptorsFromFile> featurequery;
+	bool withGPS;
+	std::string descriptor;
+	
+	// Use FLANN to retrieve KNNs
+	bool getTopKRetrieval(const int& k, const float& GPSthresh = 15);
 
 	// 使用几何验证获得最佳匹配结果
 	void getBestGeomValid();
@@ -18,32 +49,24 @@ public:
 	// 使用序列匹配获得最终定位结果
 	void getSeqMatch();
 
-	bool getGlobalSearch();
 
-	// 获得视觉定位各阶段结果
-	std::vector<std::vector<int>> getRetrievalRet(){return retrievalRet;};
-	std::vector<cv::Vec2i> getGeomValRet(){return geomValRet;};
 
-	
-private:
-	// 训练集数据(保存记录的路径)
-	std::shared_ptr<DescriptorFromFile> featurebase;
-	std::vector<std::vector<std::pair<double, int>>> gps;
+	std::shared_ptr<Parameter2F1> seqSLAMPtr;
 
-	// 测试集数据
-	std::shared_ptr<DescriptorFromFile> featurequery;
-	bool withGPS;
-	std::string descriptor;
+	// Return the matched Key points after ratio test
+	std::vector<cv::DMatch> matchFrameToFrameFlann(const cv::Mat &mDspts1, const cv::Mat &mDspts2);
+	// Use H-matrix to filter top-k candidate
+	int verifyHmatrix(const std::vector<cv::DMatch>&, const std::vector<cv::Point2f>& mKpts1, 
+		const std::vector<cv::Point2f>& mKpts2);
+	int verifyEmatrix(const std::vector<cv::DMatch>& matches, const std::vector<cv::Point2f>& mKpts1, 
+		const std::vector<cv::Point2f>& mKpts2, cv::Matx33d& R, cv::Vec3d& t);
 
-	// 使用H矩阵筛选topk
-	int MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std::vector<cv::Point2f>& mKpts1,
-								const cv::Mat &mDspts2, const std::vector<cv::Point2f>& mKpts2);
-	bool generateVideo(std::vector<int> matchingResults, std::string path="");
 	bool getDistanceMatrix(const float& gnssTh);
 
-	// 检索、几何验证的结果
-	std::vector<std::vector<int>> retrievalRet;
-	std::vector<cv::Vec2i> geomValRet;
+	// The results of image retrieval
+	std::vector<int> retrievalRet;
+	// The results of geometric validation
+	cv::Vec2i geomValRet;
 
 	/// get a distance matrix, which is as follows:	
 	//   ----> database
@@ -62,6 +85,9 @@ private:
 	std::vector<int> netVLADglobalResult;
 
 	GroundTruth ground;
+
+	double focal;
+	cv::Point2d principalPoint;
 };
 
 #endif

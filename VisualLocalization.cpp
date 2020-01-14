@@ -4,43 +4,54 @@
 #include <cmath>
 #include "Tools/GNSSDistance.h"
 #include "opencv2/surface_matching/icp.hpp"
-#include "ParameterTuning.h"
 #include "Descriptors/GroundTruth.h"
 #include <iomanip>
 
 using namespace std;
 
-//#define GAsearch
-//#define Sweepingsearch
 #define TEST
-//#define GPS_TEST
 
-VisualLocalization::VisualLocalization(GlobalConfig& config) : geomValRet(std::vector<cv::Vec2i>()), 
-												retrievalRet(std::vector<std::vector<int>>())
+
+VisualLocalization::VisualLocalization(const GlobalConfig& config) : geomValRet(cv::Vec2i()), 
+	retrievalRet(std::vector<int>())
 { 	
 	if (!config.getValid())
-	{
 		throw invalid_argument("Configuration is invalid!");
-	}
-	std::cout << "====>Reading Database Features." << std::endl;
-	featurebase = make_shared<DescriptorFromFile>(config, true);
 	
-	std::cout << "====>Reading Query Features." << std::endl;
-	featurequery = make_shared<DescriptorFromFile>(config, false);	
+	configPtr = std::make_shared<GlobalConfig>(config);
 
-	matRow = featurequery->getVolume();
+};
+
+bool VisualLocalization::readDatabase()
+{
+	std::cout << "====>Reading Database Features." << std::endl;
+	featurebase = std::make_shared<DescriptorFromFile>(*configPtr, true);	
 	matCol = featurebase->getVolume();
-
-	std::cout << "====>Reading Ground Truth." << std::endl;
-	ground.init(config.pathTest + "/of.txt", config.pathRec + "/of.txt");
-	ground.generateGroundTruth(5);
 
 	// construct the FLANN database
 	std::cout << "====>Constructing the FLANN database." << std::endl;
 	cv::flann::KDTreeIndexParams kdIndex(5); //同时建立多个随机kd树，确定tree的数量
 	searchDB = make_shared<cv::flann::Index>(featurebase->netVLADs, kdIndex); //默认为L2 distance
 
-};
+	focal = featurebase->picFiles.getFocal();
+	principalPoint = featurebase->picFiles.getPrincipalPoint();
+}
+
+bool VisualLocalization::readGroundTruth()
+{
+	std::cout << "====>Reading Ground Truth." << std::endl;
+	ground.init(configPtr->pathTest + "/of.txt", configPtr->pathRec + "/of.txt");
+	ground.generateGroundTruth(5);
+
+}
+
+bool VisualLocalization::readQuery()
+{
+	std::cout << "====>Preparing to Load Query Sequence." << std::endl;
+	featurequery = std::make_shared<PartialDescriptorsFromFile>(*configPtr);
+
+	seqSLAMPtr = std::make_shared<Parameter2F1>(ground.gt, matCol);
+}
 
 bool VisualLocalization::getGlobalSearch()//GPS global best
 {
@@ -63,167 +74,325 @@ bool VisualLocalization::getGlobalSearch()//GPS global best
 bool VisualLocalization::getDistanceMatrix(const float& gnssTh)
 {
 	// GPS
-	auto GPSQuery = featurequery->GPS;
+	auto GPSQuery = featurequery->GPS.back();
 	auto GPSRef = featurebase->GPS;
 	if (GPSQuery.empty() || GPSRef.empty())
 	{
-
 		GPSDistance = cv::Mat();
 		GPSMask_uchar = cv::Mat();
 	}
 	else
 	{
-		GPSDistance = cv::Mat(matRow, matCol, CV_32FC1);
-		for (size_t i = 0; i < matRow; i++)
+		int mat_row = 1;
+		GPSDistance = cv::Mat(mat_row, matCol, CV_32FC1);
+		for (size_t i = 0; i < mat_row; i++)
 			for (size_t j = 0; j < matCol; j++)
 				GPSDistance.at<float>(i, j) = GNSSdistance(GPSQuery.at<float>(i,1), GPSQuery.at<float>(i, 0), GPSRef.at<float>(j, 1), GPSRef.at<float>(j, 0));
 		cv::Mat GPSuchar;
 		GPSDistance.convertTo(GPSuchar, CV_8U);
 		cv::threshold(GPSuchar, GPSMask_uchar, gnssTh, 255, cv::THRESH_BINARY_INV);
-		//cv::threshold(GPSDistance, GPSMask, gnssTh, FLT_MAX, cv::THRESH_BINARY_INV);
-		//GPSMask.convertTo(GPSMask_uchar, CV_8U);
 	}
 }
 
-void VisualLocalization::getTopKRetrieval(const int& k)
+bool VisualLocalization::localizeQuery()
 {
-	auto query = featurequery->netVLADs;
+	auto has_query = featurequery->getFrame();
+
+	if(!has_query)
+		return false;
+
+	getTopKRetrieval(configPtr->topK);
+	std::cout<<"==>Top-"<<configPtr->topK<<" Retrieval is Ready."<<std::endl;	
+	
+	getBestGeomValid();
+	std::cout<<"==>Best Match is Obatained from Geometric Validation."<<std::endl;
+
+	seqSLAMPtr->placeRecognition(geomValRet, false);
+	std::cout<<"==>Sequential Matching is Ready."<<std::endl;
+
+	return true;
+}
+
+bool VisualLocalization::getTopKRetrieval(const int& k, const float& GPSthresh)
+{
+	auto query = featurequery->netVLADs.back();
 	auto ref = featurebase->netVLADs;
 	if (!featurequery->GPS.empty() && !featurebase->GPS.empty())
-		getDistanceMatrix(15);
+		getDistanceMatrix(GPSthresh);
 	
 	if(ref.empty()||query.empty())
-		retrievalRet = vector<vector<int>>();
+	{
+		retrievalRet = vector<int>();
+		return false;
+	}		
 	else
 	{
-		for(int i = 0; i < query.rows; i++)
+		cv::Mat idx, dist;
+		if(GPSMask_uchar.empty())
 		{
-			cv::Mat idx, dist;
-			if(GPSMask_uchar.empty())
+			searchDB->knnSearch(query, idx, dist, k, cv::flann::SearchParams());
+			retrievalRet = (vector<int>)idx;
+		}
+		else
+		{
+			cv::Mat ref_tmp;
+			std::vector<int> idx_;
+			for(int kk = 0; kk < GPSMask_uchar.cols; kk++)
 			{
-				searchDB->knnSearch(query.row(i), idx, dist, k, cv::flann::SearchParams());
-				retrievalRet.push_back((vector<int>)idx);
-			}
-			else
-			{
-				vector<int> vec;
-				searchDB->knnSearch(query.row(i), idx, dist, k*5, cv::flann::SearchParams());
-				for (size_t j = 0; j < k*5; j++)
+				if(GPSMask_uchar.at<uchar>(0, kk))
 				{
-					auto rest = idx.at<int>(0,j);
-					if(GPSMask_uchar.at<uchar>(i,rest))
-						vec.push_back(rest);
-					if(vec.size()>=k)
-						break;
+					ref_tmp.push_back(ref.row(kk));
+					idx_.push_back(kk);
 				}
-				retrievalRet.push_back(vec);
-			}		
-
-		}		
+					
+			}
+			cv::flann::KDTreeIndexParams kdIndex(5); //同时建立多个随机kd树，确定tree的数量
+			searchDB = make_shared<cv::flann::Index>(ref_tmp, kdIndex); //默认为L2 distance
+			searchDB->knnSearch(query, idx, dist, k, cv::flann::SearchParams());
+			std::vector<int> vec;
+			for (size_t j = 0; j < k; j++)
+			{
+				auto rest = idx.at<int>(0,j);
+				vec.push_back(idx_[rest]);
+			}
+			retrievalRet = vec;
+		}			
 	}
+	// if(retrievalRet.size() > featurequery->queryVolume)
+	// 	retrievalRet.erase(retrievalRet.begin());
+	return true;
 }
 
+#include "PointCloud.h"
 void VisualLocalization::getBestGeomValid()
 {
-	for(int i=0; i<retrievalRet.size(); i++)
-	{
-		std::cout<<"Getting Best Match of "<<i<<"-th query."<<std::endl;
-		auto qDesc = featurequery->descs[i];
-		auto qKpt = featurequery->kpts[i];
-		auto qPtNorm = featurequery->pt3dNorms[i];
-		vector<pair<int,int>> numMatches;
-		vector<pair<double,int>> errors;
-		for (size_t j = 0; j < retrievalRet[i].size(); j++)
-		{
-			auto dbDesc = featurebase->descs[retrievalRet[i][j]];
-			auto dbKpt = featurebase->kpts[retrievalRet[i][j]];
-			auto dbPtNorm = featurebase->pt3dNorms[retrievalRet[i][j]];
-			double residual;
-			cv::Matx44d pose;
-			cv::ppf_match_3d::ICP icp;
-			icp.registerModelToScene(dbPtNorm, qPtNorm, residual, pose);
-			errors.push_back(std::make_pair(residual, retrievalRet[i][j]));
 
-			int numMatch = MatchFrameToFrameFlann(qDesc, qKpt, dbDesc, dbKpt);
-			numMatches.push_back(std::make_pair(numMatch,retrievalRet[i][j]));
+	// std::cout<<"Getting Best Match of "<<i<<"-th query."<<std::endl;
+	auto qDesc = featurequery->descs.back();
+	auto qKpt = featurequery->kpts.back();
+	auto qPtNorm = featurequery->pt3dNorms.back();
+	vector<pair<int,int>> numMatches;
+	vector<pair<cv::Vec2d,int>> errors;
+	for (size_t j = 0; j < retrievalRet.size(); j++)
+	{
+		auto dbDesc = featurebase->descs[retrievalRet[j]];
+		auto dbKpt = featurebase->kpts[retrievalRet[j]];
+		
+		// Get the matched key points
+		auto matches = matchFrameToFrameFlann(qDesc, dbDesc);
+		cv::Matx33d R = cv::Matx33d::eye();
+		cv::Vec3d t = cv::Vec3d(0, 0, 0);
+		int numMatch = verifyHmatrix(matches, qKpt, dbKpt);
+		// int numMatch = verifyEmatrix(matches, qKpt, dbKpt, R, t);
+		numMatches.push_back(std::make_pair(numMatch,retrievalRet[j]));	
+
+		if(configPtr->withDepth)
+		{
+			auto dbPtNorm = featurebase->pt3dNorms[retrievalRet[j]];
+			double residual;
+			cv::Matx44d poseMatrix = cv::Matx44d::eye();
+			// cv::ppf_match_3d::ICP icp(300, 5000.0f, 1.5f, 1);
+			myICP icp(500, 0.05f, 1.5f, 1);
+			// if (numMatch==0)
+			// {
+			// 	icp.registerModelToScene(qPtNorm, dbPtNorm, residual, poseMatrix);
+			// }
+			// cv::ppf_match_3d::Pose3DPtr pose_3D = cv::makePtr<cv::ppf_match_3d::Pose3D>();
+			// pose_3D->updatePose(R, t);
+			// pose_3D->residual = 1e10;
+			// // if(numMatch<configPtr->minInlierNum)
+			// // {
+				// R = cv::Matx33d::eye();
+				// t = cv::Vec3d(0, 0, 0);
+			// // }					
+			// std::vector<cv::ppf_match_3d::Pose3DPtr> vecPose;//可以设定多个初始值
+			// vecPose.push_back(pose_3D);
+
+			double dist_sqr=1e3;
+			
+			cv::Mat qPtNorm_, dbPtNorm_;
+			for (auto match : matches)
+			{
+				qPtNorm_.push_back(qPtNorm.row(match.queryIdx));
+				dbPtNorm_.push_back(dbPtNorm.row(match.trainIdx));
+			}
+			// int failed = icp.registerModelToScene(qPtNorm, dbPtNorm, residual, poseMatrix);
+			int failed = icp.registerModelToScene(qPtNorm_, dbPtNorm_, matches, residual, poseMatrix);
+			// int failed = icp.registerModelToScene(qPtNorm, dbPtNorm, vecPose);
+			
+			// if (!failed)
+			// {					
+			// 	double x = vecPose[0]->t[0];
+			// 	double z = vecPose[0]->t[2];
+			// 	dist_sqr = std::pow(x/1000, 2) + std::pow(z/1000, 2);
+			// }
+
+			// cv::Vec2d ret(vecPose[0]->residual, dist_sqr);
+
+			if (!failed)
+			{					
+				double x = poseMatrix(0, 3);
+				double z = poseMatrix(2, 3);
+				dist_sqr = std::pow(x/1000, 2) + std::pow(z/1000, 2);
+			}
+
+			cv::Vec2d ret(residual, dist_sqr);
+			errors.push_back(std::make_pair(ret, retrievalRet[j]));	
+
 		}
-		cv::Vec2i tmp;
+		
+	}
+	cv::Vec2i tmp;
+	// Rank by inlier number of 2D geometric verification
+	if(numMatches.empty())
+		tmp[1] = -1;
+	else
+	{
+		// Increasing Order
+		std::sort(numMatches.begin(), numMatches.end(), 
+					[](const pair<int,int>& t1, const pair<int,int>& t2){
+						return t1.first<t2.first;
+					} ); 
+		for(auto iter = numMatches.begin(); iter < numMatches.end(); )
+			if(iter->first < configPtr->minInlierNum)
+				iter = numMatches.erase(iter);
+			else
+				break;
+		if(numMatches.empty())
+			tmp[1] = -1;
+		else 
+			tmp[1] = numMatches.back().second;	
+	}	
+	
+	// Rank by inlier number of 3D geometric verification
+	if(errors.empty())
+		tmp[0] = -1;
+	else
+	{
+		// Decreasing Order
+		std::sort(errors.begin(), errors.end(), 
+					[](const pair<cv::Vec2d,int>& t1, const pair<cv::Vec2d,int>& t2){
+						return t1.first[1]>t2.first[1];
+					} );
+		for(auto iter = errors.begin(); iter < errors.end(); )
+			if(iter->first[1] > 15*15)
+				iter = errors.erase(iter);
+			else
+				break;
 		if(errors.empty())
 			tmp[0] = -1;
 		else
 		{
-			auto tmp_err = std::max_element(errors.begin(), errors.end(), 
-										[](const pair<int,int>& t1, const pair<int,int>& t2){
-											return t1.first<t2.first;
-										} );
-			tmp[0] = -1;//tmp_err->second;	
-		}			
-		if(numMatches.empty())
-			tmp[1] = -1;
+			std::cout<<errors.back().first[1]<<std::endl;
+			tmp[0] = errors.back().second;		
+		}
+			
+		
+	}			
+	// if(std::abs(tmp[0]-tmp[1])>10&&(tmp[0]>=0&&tmp[1]>=0))
+	// {
+	// 	tmp[0] = tmp[1] = -1;
+	// }
+	if (tmp[0]!=-1&&tmp[1]!=-1)
+	{
+		if(std::abs(tmp[0]-tmp[1])>20)
+			tmp[0]=-1;
 		else
-		{
-			auto tmp_num = std::max_element(numMatches.begin(), numMatches.end(), 
-										[](const pair<int,int>& t1, const pair<int,int>& t2){
-											return t1.first>t2.first;
-										} );
-			tmp[1] = tmp_num->second;		
-		}		
-		geomValRet.push_back(tmp);
-	}	
+			tmp[0]=(tmp[0]+tmp[1])/2;
+		tmp[1]=-1;
+	}
+	geomValRet = tmp;
+	// if(geomValRet.size() > featurequery->queryVolume)
+	// 	geomValRet.erase(geomValRet.begin());
+	
 }
 
-void VisualLocalization::getSeqMatch()
+
+void VisualLocalization::getPerformance()
 {
-	Parameter2F1 pt(ground.gt, geomValRet, cv::Size(matCol, matRow));
 	float p, r ;
-	pt.placeRecognition();
-	generateVideo(pt.getMatchingResults());
 	std::cout << "F1" << "\t" << "p" << "\t" << "r" << std::endl;
-	std::cout << pt.calculateF1score(&p, &r) << "\t" << p << "\t" << r << std::endl;
+	std::cout << seqSLAMPtr->calculateF1score(&p, &r) << "\t" << p << "\t" << r << std::endl;
 	std::cout << "Error" << std::endl;
-	std::cout << pt.calculateErr() << std::endl;
+	std::cout << seqSLAMPtr->calculateErr() << std::endl;
 }
-
-int VisualLocalization::MatchFrameToFrameFlann(const cv::Mat &mDspts1, const std::vector<cv::Point2f>& mKpts1,
-												const cv::Mat &mDspts2, const std::vector<cv::Point2f>& mKpts2)
+std::vector<cv::DMatch> VisualLocalization::matchFrameToFrameFlann(const cv::Mat &mDspts1, const cv::Mat &mDspts2)
 {
+	std::vector<cv::DMatch> matches;
     if(mDspts1.empty() || mDspts2.empty())
     {
         cout<<"Frame descriptor is empty!\n";
-        return 0;
+        return matches;
     }
 	cv::FlannBasedMatcher flannMatcher;
     std::vector<std::vector<cv::DMatch> > kMatches;
 
 	assert(mDspts2.rows>2);
     flannMatcher.knnMatch(mDspts1, mDspts2, kMatches, 2);
-
-    int good = 0;
-	vector<cv::Point2f> qPts, dbPts;
+    
 	for (int i = 0; i < kMatches.size(); i++)
     {
-        if (kMatches[i].size() >= 2 && kMatches[i][0].distance*1.0 / kMatches[i][1].distance < 0.7)
+        if (kMatches[i].size() >= 2 && kMatches[i][0].distance*1.0 / (kMatches[i][1].distance+FLT_MIN) < 0.7)
         {
-			qPts.push_back(mKpts1[kMatches[i][0].queryIdx]);
-			dbPts.push_back(mKpts2[kMatches[i][0].trainIdx]);
+			matches.push_back(kMatches[i][0]);
         }
     }
+	return matches;
+}
+
+int VisualLocalization::verifyHmatrix(const std::vector<cv::DMatch>& matches, const std::vector<cv::Point2f>& mKpts1, 
+	const std::vector<cv::Point2f>& mKpts2)
+{
+
+	vector<cv::Point2f> qPts, dbPts;
+	for (int i = 0; i < matches.size(); i++)
+    {
+		qPts.push_back(mKpts1[matches[i].queryIdx]);
+		dbPts.push_back(mKpts2[matches[i].trainIdx]);
+    }
+
 	cv::Mat mask;
 	if(qPts.size()==0)
 	{
 		return 0;
 	}
-	cv::findHomography(qPts, dbPts, cv::RANSAC, 2, mask);	//TODO:调整阈值？
-	for(int i = 0;i < mask.cols; i++)
+	auto hMatrix = cv::findHomography(qPts, dbPts, cv::RANSAC, 4, mask);
+	int good = 0;
+	for(int i = 0;i < mask.rows; i++)
 	{
 		auto pRow = mask.ptr<uchar>(i);
 		if(*pRow)
 			good++;
 	}
+
     return good;
 }
 
+int VisualLocalization::verifyEmatrix(const std::vector<cv::DMatch>& matches, const std::vector<cv::Point2f>& mKpts1, 
+	const std::vector<cv::Point2f>& mKpts2, cv::Matx33d& R, cv::Vec3d& t)
+{
 
+	vector<cv::Point2f> qPts, dbPts;
+	for (int i = 0; i < matches.size(); i++)
+    {
+		qPts.push_back(mKpts1[matches[i].queryIdx]);
+		dbPts.push_back(mKpts2[matches[i].trainIdx]);
+    }
+
+	cv::Mat mask;
+	if(qPts.size()==0)
+	{
+		return 0;
+	}
+
+	cv::Mat eMatrix = cv::findEssentialMat(qPts, dbPts, focal, principalPoint, cv::RANSAC, 0.999, 4.0, mask);
+	if(eMatrix.empty())
+		return 0;
+
+	int good = cv::recoverPose(eMatrix, qPts, dbPts, R, t, focal, principalPoint, mask);
+
+    return good;
+}
 
 // 返回时间戳格式为 yyyy-mm-dd_hh-mm-ss
 std::string getTimeStamp()
@@ -235,39 +404,4 @@ std::string getTimeStamp()
 	timeStampStream << 1900 + p->tm_year << setw(2) << setfill('0') << 1 + p->tm_mon << setw(2) << setfill('0') << p->tm_mday << "_";
 	timeStampStream << p->tm_hour << "-" << p->tm_min << "-" << p->tm_sec;
 	return timeStampStream.str();
-}
-
-#include <sys/stat.h>
-#include <sys/types.h>
-bool VisualLocalization::generateVideo(std::vector<int> matchingResults, std::string path)
-{
-	// if (path.empty())
-	// {
-	// 	DIR *dir;
-	// 	if ((dir = opendir("results")) == NULL)
-	// 		mkdir("results", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	// 	path = "results\\";
-	// 	path += getTimeStamp()+".avi";
-	// }
-	// cv::VideoWriter writer(path, cv::VideoWriter::fourcc('F', 'L', 'V', '1'), 1.0, cv::Size(320, 240 * 2));
-	// if (!writer.isOpened())
-	// {
-	// 	writer.release();
-	// 	return false;
-	// }
-	// for (size_t i = 0; i < matchingResults.size(); i++)
-	// {
-	// 	cv::Mat query_database = cv::imread(descriptorquery->picFiles.getColorImgPath(i));
-	// 	if (matchingResults[i]!=-1)
-	// 	{
-	// 		query_database.push_back(cv::imread(descriptorbase->picFiles.getColorImgPath(matchingResults[i])));
-	// 	}
-	// 	else
-	// 	{
-	// 		query_database.push_back(cv::Mat(cv::Size(320, 240), CV_8UC3, cv::Scalar(0, 0, 0)));
-	// 	}
-	// 	writer << query_database;
-	// }
-	// writer.release();
-	return true;
 }

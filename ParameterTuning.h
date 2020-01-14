@@ -15,19 +15,17 @@ struct Params
 	float scoreTh = 0.16;
 };
 
-
 class Parameter2F1
 {
 	std::vector<std::vector<int>> gt;
-	std::vector<cv::Vec2i> pGlobal;
+	// std::vector<cv::Vec2i> pGlobal;
 	Params parameters;
 	std::vector<int> matchingResults; // -1 means empty, 1-based results
-	cv::Size matSize;
 	SequenceSearch pSS;
+	int numRef;
 
 public:
-	Parameter2F1(std::vector<std::vector<int>> gt, std::vector<cv::Vec2i> GlobalBest, cv::Size matSize) : 
-				gt(gt), pGlobal(GlobalBest), matSize(matSize) { };
+	Parameter2F1(std::vector<std::vector<int>> gt, int numRef) : gt(gt), numRef(numRef) { };
 	~Parameter2F1() { };
 	//update different parameters
 	void updateParams(float vmax, float vmin, float numseq)
@@ -40,11 +38,11 @@ public:
 	{
 		parameters.scoreTh = scoreTh;
 	}
+	
 
-
-	void prepare4MultimodalCoefficients();	
+	void prepare4MultimodalCoefficients(cv::Vec2i GlobalBest);	
 	// get matching results
-	void placeRecognition(const bool& isWindowUniqueness=true);
+	void placeRecognition(cv::Vec2i GlobalBest, const bool& isWindowUniqueness=true);
 
 	void printMatchingResults() {
 		for (size_t i = 0; i < matchingResults.size(); i++)

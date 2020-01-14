@@ -1,7 +1,6 @@
 #include "GlobalConfig.h"
 
 
-
 GlobalConfig::GlobalConfig(std::string ymlPath) 
 {
 	fs.open(ymlPath, cv::FileStorage::READ);
@@ -22,11 +21,18 @@ bool GlobalConfig::readConfig()
 	fs["PathTest"] >> pathTest;
 	fs["FileType"] >> fileType;
 	fs["Interval"] >> interval;
-	fs["GPS"] >> withGPS;
+	
+	fs["GNSS"] >> withGPS;
+	fs["GNSSthres"] >> GPSthresh;
+	
 	fs["fx"]>>fx;
 	fs["fy"]>>fy;
 	fs["cx"]>>cx;
 	fs["cy"]>>cy;
+	fs["topK"]>>topK;
+	fs["Depth"]>>withDepth;
+	fs["num_queue"]>>num_queue;
+	fs["minInlierNum"]>>minInlierNum;
 
 	return true;
 }

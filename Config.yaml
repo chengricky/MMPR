@@ -2,8 +2,8 @@
 
 ---
 
-PathRec: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/T3-Lib-res-a-rgb/reference"
-PathTest: "/localresearch/PreciseLocalization/Dataset/YuQuanMultimodal/T3-Lib-res-a-rgb/query"
+PathRec: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-T3-vgg-a/reference"
+PathTest: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-T3-vgg-a/query"
 
 # read "Feature" from files
 FileType: 1
@@ -14,8 +14,17 @@ cy: 119.8
 fx: 288.4
 fy: 288.4
 
-# whether use color image
-Color: 1
 # other sensor
-GPS: 1
+GNSS: 1
+GNSSthres: 15
 
+# Retrieval 
+topK: 5
+
+# Geometric Verification
+Depth: 1
+KeyPointGridSize: 4
+minInlierNum: 300
+
+# Sequence Matching 
+num_queue: 10
