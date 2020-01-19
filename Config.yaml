@@ -2,8 +2,8 @@
 
 ---
 
-PathRec: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-T3-vgg-a/reference"
-PathTest: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-T3-vgg-a/query"
+PathRec: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-T3-res-a/reference"
+PathTest: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-T3-res-a/query"
 
 # read "Feature" from files
 FileType: 1

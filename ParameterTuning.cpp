@@ -34,7 +34,7 @@ void Parameter2F1::placeRecognition(cv::Vec2i GlobalBest, const bool& isWindowUn
 		
 		if (isWindowUniqueness)	// Windowed Uniqueness Thresholding
 		{
-			int window = 10;
+			int window = 15;
 			double ratioTh = 1.1;
 			int a = std::max(0, maxPos[1] - window / 2);
 			int b = std::min(scoreNormed.cols-1, maxPos[1] + window / 2);

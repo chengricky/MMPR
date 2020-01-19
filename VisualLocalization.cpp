@@ -6,6 +6,7 @@
 #include "opencv2/surface_matching/icp.hpp"
 #include "Descriptors/GroundTruth.h"
 #include <iomanip>
+#include <numeric>
 
 using namespace std;
 
@@ -107,7 +108,7 @@ bool VisualLocalization::localizeQuery()
 	getBestGeomValid();
 	std::cout<<"==>Best Match is Obatained from Geometric Validation."<<std::endl;
 
-	seqSLAMPtr->placeRecognition(geomValRet, false);
+	seqSLAMPtr->placeRecognition(geomValRet, true);
 	std::cout<<"==>Sequential Matching is Ready."<<std::endl;
 
 	return true;
@@ -175,72 +176,90 @@ void VisualLocalization::getBestGeomValid()
 	vector<pair<cv::Vec2d,int>> errors;
 	for (size_t j = 0; j < retrievalRet.size(); j++)
 	{
-		auto dbDesc = featurebase->descs[retrievalRet[j]];
-		auto dbKpt = featurebase->kpts[retrievalRet[j]];
-		
-		// Get the matched key points
-		auto matches = matchFrameToFrameFlann(qDesc, dbDesc);
-		cv::Matx33d R = cv::Matx33d::eye();
-		cv::Vec3d t = cv::Vec3d(0, 0, 0);
-		int numMatch = verifyHmatrix(matches, qKpt, dbKpt);
-		// int numMatch = verifyEmatrix(matches, qKpt, dbKpt, R, t);
-		numMatches.push_back(std::make_pair(numMatch,retrievalRet[j]));	
-
-		if(configPtr->withDepth)
+		vector<int> indexTuple, matchTuple;
+		vector<cv::Vec2d> errorTuple;
+		for(int ii = std::max(0, retrievalRet[j] - 0); ii <= std::min(matCol-1, retrievalRet[j] + 0); ii++)
 		{
-			auto dbPtNorm = featurebase->pt3dNorms[retrievalRet[j]];
-			double residual;
-			cv::Matx44d poseMatrix = cv::Matx44d::eye();
-			// cv::ppf_match_3d::ICP icp(300, 5000.0f, 1.5f, 1);
-			myICP icp(500, 0.05f, 1.5f, 1);
-			// if (numMatch==0)
-			// {
-			// 	icp.registerModelToScene(qPtNorm, dbPtNorm, residual, poseMatrix);
-			// }
-			// cv::ppf_match_3d::Pose3DPtr pose_3D = cv::makePtr<cv::ppf_match_3d::Pose3D>();
-			// pose_3D->updatePose(R, t);
-			// pose_3D->residual = 1e10;
-			// // if(numMatch<configPtr->minInlierNum)
-			// // {
-				// R = cv::Matx33d::eye();
-				// t = cv::Vec3d(0, 0, 0);
-			// // }					
-			// std::vector<cv::ppf_match_3d::Pose3DPtr> vecPose;//可以设定多个初始值
-			// vecPose.push_back(pose_3D);
-
-			double dist_sqr=1e3;
-			
-			cv::Mat qPtNorm_, dbPtNorm_;
-			for (auto match : matches)
-			{
-				qPtNorm_.push_back(qPtNorm.row(match.queryIdx));
-				dbPtNorm_.push_back(dbPtNorm.row(match.trainIdx));
-			}
-			// int failed = icp.registerModelToScene(qPtNorm, dbPtNorm, residual, poseMatrix);
-			int failed = icp.registerModelToScene(qPtNorm_, dbPtNorm_, matches, residual, poseMatrix);
-			// int failed = icp.registerModelToScene(qPtNorm, dbPtNorm, vecPose);
-			
-			// if (!failed)
-			// {					
-			// 	double x = vecPose[0]->t[0];
-			// 	double z = vecPose[0]->t[2];
-			// 	dist_sqr = std::pow(x/1000, 2) + std::pow(z/1000, 2);
-			// }
-
-			// cv::Vec2d ret(vecPose[0]->residual, dist_sqr);
-
-			if (!failed)
-			{					
-				double x = poseMatrix(0, 3);
-				double z = poseMatrix(2, 3);
-				dist_sqr = std::pow(x/1000, 2) + std::pow(z/1000, 2);
-			}
-
-			cv::Vec2d ret(residual, dist_sqr);
-			errors.push_back(std::make_pair(ret, retrievalRet[j]));	
-
+			indexTuple.push_back(ii);
 		}
+		for (auto ii : indexTuple)
+		{
+			auto dbDesc = featurebase->descs[ii];
+			auto dbKpt = featurebase->kpts[ii];
+			
+			// Get the matched key points
+			auto matches = matchFrameToFrameFlann(qDesc, dbDesc);
+			cv::Matx33d R = cv::Matx33d::eye();
+			cv::Vec3d t = cv::Vec3d(0, 0, 0);
+			int numMatch = verifyHmatrix(matches, qKpt, dbKpt);
+			// int numMatch = verifyEmatrix(matches, qKpt, dbKpt, R, t);
+			matchTuple.push_back(numMatch);
+			// numMatches.push_back(std::make_pair(numMatch,retrievalRet[j]));	
+
+			if(configPtr->withDepth)
+			{
+				auto dbPtNorm = featurebase->pt3dNorms[ii];
+				double residual;
+				cv::Matx44d poseMatrix = cv::Matx44d::eye();
+				// cv::ppf_match_3d::ICP icp(300, 5000.0f, 1.5f, 1);
+				myICP icp(500, 0.005f, 3.0f, 1);
+				// if (numMatch==0)
+				// {
+				// 	icp.registerModelToScene(qPtNorm, dbPtNorm, residual, poseMatrix);
+				// }
+				// cv::ppf_match_3d::Pose3DPtr pose_3D = cv::makePtr<cv::ppf_match_3d::Pose3D>();
+				// pose_3D->updatePose(R, t);
+				// pose_3D->residual = 1e10;
+				// // if(numMatch<configPtr->minInlierNum)
+				// // {
+					// R = cv::Matx33d::eye();
+					// t = cv::Vec3d(0, 0, 0);
+				// // }					
+				// std::vector<cv::ppf_match_3d::Pose3DPtr> vecPose;//可以设定多个初始值
+				// vecPose.push_back(pose_3D);
+
+				double dist_sqr=1e3;
+				
+				cv::Mat qPtNorm_, dbPtNorm_;
+				for (auto match : matches)
+				{
+					qPtNorm_.push_back(qPtNorm.row(match.queryIdx));
+					dbPtNorm_.push_back(dbPtNorm.row(match.trainIdx));
+				}
+				// int failed = icp.registerModelToScene(qPtNorm, dbPtNorm, residual, poseMatrix);
+				int failed = icp.registerModelToScene(qPtNorm_, dbPtNorm_, matches, residual, poseMatrix);
+				// int failed = icp.registerModelToScene(qPtNorm, dbPtNorm, vecPose);
+				
+				// if (!failed)
+				// {					
+				// 	double x = vecPose[0]->t[0];
+				// 	double z = vecPose[0]->t[2];
+				// 	dist_sqr = std::pow(x/1000, 2) + std::pow(z/1000, 2);
+				// }
+
+				// cv::Vec2d ret(vecPose[0]->residual, dist_sqr);
+
+				if (!failed)
+				{					
+					double x = poseMatrix(0, 3);
+					double z = poseMatrix(2, 3);
+					dist_sqr = std::pow(x/1000, 2) + std::pow(z/1000, 2);
+				}
+
+				cv::Vec2d ret(residual, dist_sqr);
+				errorTuple.push_back(ret);
+				// errors.push_back(std::make_pair(ret, retrievalRet[j]));	
+			}
+		}
+		int sum = std::accumulate(matchTuple.begin(), matchTuple.end(), 0);
+		numMatches.push_back(std::make_pair(sum/matchTuple.size(),retrievalRet[j]));	
 		
+		cv::Vec2d sumVec(0, 0);
+		for (auto e : errorTuple)
+			sumVec += e;
+		sumVec = cv::Vec2d(sumVec[0]/errorTuple.size(), sumVec[1]/errorTuple.size());
+		errors.push_back(std::make_pair(sumVec, retrievalRet[j]));
+
 	}
 	cv::Vec2i tmp;
 	// Rank by inlier number of 2D geometric verification
@@ -289,18 +308,18 @@ void VisualLocalization::getBestGeomValid()
 			
 		
 	}			
-	// if(std::abs(tmp[0]-tmp[1])>10&&(tmp[0]>=0&&tmp[1]>=0))
+	// if(std::abs(tmp[0]-tmp[1])>20&&(tmp[0]>=0&&tmp[1]>=0))
 	// {
 	// 	tmp[0] = tmp[1] = -1;
 	// }
-	if (tmp[0]!=-1&&tmp[1]!=-1)
-	{
-		if(std::abs(tmp[0]-tmp[1])>20)
-			tmp[0]=-1;
-		else
-			tmp[0]=(tmp[0]+tmp[1])/2;
-		tmp[1]=-1;
-	}
+	// if (tmp[0]!=-1&&tmp[1]!=-1)
+	// {
+	// 	if(std::abs(tmp[0]-tmp[1])>20)
+	// 		tmp[0]=-1;
+	// 	else
+	// 		tmp[0]=(tmp[0]+tmp[1])/2;
+	// 	tmp[1]=-1;
+	// }
 	geomValRet = tmp;
 	// if(geomValRet.size() > featurequery->queryVolume)
 	// 	geomValRet.erase(geomValRet.begin());

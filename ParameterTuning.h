@@ -11,7 +11,7 @@
 
 struct Params
 {
-	float vmax = 1 / 0.4, vmin = 0.4, numsequence = 10;
+	float vmax = 1 / 0.4, vmin = 0.4, numsequence = 20;
 	float scoreTh = 0.16;
 };
 
