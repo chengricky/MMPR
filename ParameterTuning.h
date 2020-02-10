@@ -25,7 +25,10 @@ class Parameter2F1
 	int numRef;
 
 public:
-	Parameter2F1(std::vector<std::vector<int>> gt, int numRef) : gt(gt), numRef(numRef) { };
+	Parameter2F1(std::vector<std::vector<int>> gt, int numRef, int num_queue) : gt(gt), numRef(numRef)
+	{
+		parameters.numsequence = num_queue;
+	};
 	~Parameter2F1() { };
 	//update different parameters
 	void updateParams(float vmax, float vmin, float numseq)
@@ -43,20 +46,21 @@ public:
 	void prepare4MultimodalCoefficients(cv::Vec2i GlobalBest);	
 	// get matching results
 	void placeRecognition(cv::Vec2i GlobalBest, const bool& isWindowUniqueness=true);
-
-	void printMatchingResults() {
+	void updateMatchingResults(std::vector<int> vec)
+	{
+		matchingResults.swap(vec);
+	};
+	void printMatchingResults() 
+	{
 		for (size_t i = 0; i < matchingResults.size(); i++)
-		{
 			std::cout << i << "..." << matchingResults[i] << std::endl;
-		}
-	}
-	void saveMatchingResults() {
+	};
+	void saveMatchingResults() 
+	{
 		std::ofstream of("result.txt");
 		for (size_t i = 0; i < matchingResults.size(); i++)
-		{
 			of << matchingResults[i] << std::endl;
-		}
-	}
+	};
 	std::vector<int> getMatchingResults() { return matchingResults; };
 
 	//calculate F1 score according to groundtruth(gt) and PR results (matchingResults).

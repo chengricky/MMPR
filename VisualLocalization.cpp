@@ -51,7 +51,7 @@ bool VisualLocalization::readQuery()
 	std::cout << "====>Preparing to Load Query Sequence." << std::endl;
 	featurequery = std::make_shared<PartialDescriptorsFromFile>(*configPtr);
 
-	seqSLAMPtr = std::make_shared<Parameter2F1>(ground.gt, matCol);
+	seqSLAMPtr = std::make_shared<Parameter2F1>(ground.gt, matCol, configPtr->num_queue);
 }
 
 bool VisualLocalization::getGlobalSearch()//GPS global best
@@ -59,14 +59,17 @@ bool VisualLocalization::getGlobalSearch()//GPS global best
 	/// only GPS localization
 	cv::Mat GPSdistanceMat = GPSDistance;
 	GPSdistanceMat.setTo(FLT_MAX, GPSMask_uchar);
-	for (size_t i = 0; i < matRow; i++)//query
+	for (size_t i = 0; i < GPSdistanceMat.rows; i++)//query
 	{
 		//When minIdx is not NULL, it must have at least 2 elements (as well as maxIdx), even if src is a single-row or single-column matrix.
 		//In OpenCV (following MATLAB) each array has at least 2 dimensions, i.e. single-column matrix is Mx1 matrix (and therefore minIdx/maxIdx will be (i1,0)/(i2,0)) 
 		//and single-row matrix is 1xN matrix (and therefore minIdx/maxIdx will be (0,j1)/(0,j2)).
 		int* minPos = new int[2];
 		cv::minMaxIdx(GPSdistanceMat.row(i), nullptr, nullptr, minPos, nullptr);	//¿É·ñ¸Ä³Étop-k		?
-		GPSGlobalBest.push_back(minPos[1]);
+		if(minPos[0]<15)
+			GPSGlobalBest.push_back(minPos[1]);
+		else
+			GPSGlobalBest.push_back(-1);
 		delete minPos;
 	}
 	return true;
@@ -119,7 +122,10 @@ bool VisualLocalization::getTopKRetrieval(const int& k, const float& GPSthresh)
 	auto query = featurequery->netVLADs.back();
 	auto ref = featurebase->netVLADs;
 	if (!featurequery->GPS.empty() && !featurebase->GPS.empty())
+	{
 		getDistanceMatrix(GPSthresh);
+		getGlobalSearch();
+	}		
 	
 	if(ref.empty()||query.empty())
 	{
@@ -331,9 +337,12 @@ void VisualLocalization::getPerformance()
 {
 	float p, r ;
 	std::cout << "F1" << "\t" << "p" << "\t" << "r" << std::endl;
+	// seqSLAMPtr->updateMatchingResults(GPSGlobalBest);
 	std::cout << seqSLAMPtr->calculateF1score(&p, &r) << "\t" << p << "\t" << r << std::endl;
 	std::cout << "Error" << std::endl;
 	std::cout << seqSLAMPtr->calculateErr() << std::endl;
+	seqSLAMPtr->saveMatchingResults();
+
 }
 std::vector<cv::DMatch> VisualLocalization::matchFrameToFrameFlann(const cv::Mat &mDspts1, const cv::Mat &mDspts2)
 {

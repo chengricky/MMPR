@@ -2,8 +2,8 @@
 
 ---
 
-PathRec: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-T3-res-a/reference"
-PathTest: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-T3-res-a/query"
+PathRec: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-Lib-res-a/reference"
+PathTest: "/localresearch/VisualLocalization/Dataset/YuQuanMultimodal/T3-Lib-res-a/query"
 
 # read "Feature" from files
 FileType: 1
@@ -27,4 +27,4 @@ KeyPointGridSize: 4
 minInlierNum: 300
 
 # Sequence Matching 
-num_queue: 10
+num_queue: 20
